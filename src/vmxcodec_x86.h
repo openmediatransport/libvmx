@@ -31,7 +31,7 @@
 #if defined(__GNUC__)
 #define __lzcnt(t) __builtin_clz(t)
 #endif
-#if defined(__linux__)
+#if defined(__linux__) | defined(__APPLE__)
 #include <x86intrin.h>
 #define VMX_BUFFERSWAP(t) __builtin_bswap64(t)
 #else
