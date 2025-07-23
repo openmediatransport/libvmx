@@ -1,0 +1,1 @@
+g++ -O3 -march=haswell -std=c++17 -D _WINDOWS -lmingw32 -fPIC -dynamiclib -static -shared ../src/dllmain.cpp ../src/vmxcodec_x86.cpp ../src/vmxcodec.cpp -o libvmx.dll

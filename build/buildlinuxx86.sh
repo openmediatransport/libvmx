@@ -1,0 +1,1 @@
+clang++ -O3 -std=c++17 -fdeclspec -fPIC -mlzcnt -mavx2 -mbmi -shared ../src/vmxcodec_x86.cpp ../src/vmxcodec_avx2.cpp ../src/vmxcodec.cpp -o libvmx.so

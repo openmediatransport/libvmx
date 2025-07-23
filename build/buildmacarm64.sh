@@ -1,0 +1,1 @@
+g++ -O3 -std=c++17 -fdeclspec -fPIC -dynamiclib ../src/vmxcodec_arm.cpp ../src/vmxcodec.cpp -o libvmx.dylib
