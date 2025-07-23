@@ -28,7 +28,8 @@ Documentation can be found at: https://www.openmediatransport.org/docs/
 
 ## Getting Started
 
-Binaries with Library files are available for most major platforms and are the recommended way to get started.
+Binaries with Library files are available in the Releases section of the libomtnet repo.
+These are available for Windows and MacOS and are the recommended way to get started.
 
 ### C/C++
 Include vmxcodec.h, reference libvmx.lib and you're ready to go.
@@ -36,7 +37,7 @@ Include vmxcodec.h, reference libvmx.lib and you're ready to go.
 ### C#/VB.Net
 All functions can be called with DllImport
 
-Use IntPtr for instance. No structs need to be defined.
+Use IntPtr for the instance type. No structs need to be defined.
 
 ## Compiling
 

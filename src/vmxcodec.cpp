@@ -226,11 +226,11 @@ VMX_API VMX_INSTANCE* VMX_Create(VMX_SIZE dimensions, VMX_PROFILE profile, VMX_C
 
 #if defined(X64)
 	#if defined(__GNUC__)
-		if (!__builtin_cpu_supports("bmi2")) {
-			return NULL;
-		}
 		if (__builtin_cpu_supports("avx2")) {
 			instance->avx2 = 1;
+		}
+		if (!__builtin_cpu_supports("bmi2")) {
+			instance->avx2 = 0;
 		}
 	#else
 		int cpu_info7[4] = { 0 };
