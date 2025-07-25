@@ -51,11 +51,11 @@ Use IntPtr for the instance type. No structs need to be defined.
 
 1. Install Clang
 2. cd ./build
-3. Run ./buildlinuxx86.sh or ./buildlinuxarm64.sh depending on platform
+3. Run ./buildlinuxx64.sh or ./buildlinuxarm64.sh depending on platform
 
 ### Mac (ARM64)
 
 1. Install xcode with Apple Clang Compiler
 2. cd ./build
-3. Run ./buildmacarm64.sh
+3. Run ./buildmacuniversal.sh
 
