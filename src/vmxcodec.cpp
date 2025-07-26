@@ -557,6 +557,7 @@ void VMX_DecodeSlices(VMX_INSTANCE* instance, int startIndex, int count)
 
 	if (instance->Format == VMX_FORMAT_PROGRESSIVE) {
 		int sliceStride = instance->ImageStride * VMX_SLICE_HEIGHT;
+		int sliceStrideA;
 
 		switch (instance->ImageFormat) 
 		{
@@ -571,6 +572,23 @@ void VMX_DecodeSlices(VMX_INSTANCE* instance, int startIndex, int count)
 					u.Data + s->Offset[1], u.Stride,
 					v.Data + s->Offset[2], v.Stride,
 					instance->ImageData + (i * sliceStride), instance->ImageStride, s->PixelSize);
+			}
+			break;
+		case VMX_IMAGE_UYVA:
+			sliceStrideA = instance->ImageStrideA * VMX_SLICE_HEIGHT;
+			for (int i = startIndex; i < (startIndex + count); i++)
+			{
+				VMX_SLICE_SET* s = instance->Slices[i];
+				VMX_DecodePlane(instance, &y, s);
+				VMX_DecodePlane(instance, &u, s);
+				VMX_DecodePlane(instance, &v, s);
+				VMX_DecodePlane(instance, &a, s);
+				VMX_PlanarToUYVY(y.Data + s->Offset[0], y.Stride,
+					u.Data + s->Offset[1], u.Stride,
+					v.Data + s->Offset[2], v.Stride,
+					instance->ImageData + (i * sliceStride), instance->ImageStride, s->PixelSize);
+				VMX_PlanarToA(a.Data + s->Offset[3],a.Stride,
+					instance->ImageDataA + (i * sliceStrideA),instance->ImageStrideA,s->PixelSize);
 			}
 			break;
 		case VMX_IMAGE_YUY2:
@@ -630,6 +648,11 @@ void VMX_DecodeSlices(VMX_INSTANCE* instance, int startIndex, int count)
 		int offset = 0;
 		int interlacedOffset = -(instance->ImageStride * (instance->AlignedHeight - 1));
 
+		int sliceStrideA;
+		int offsetA;
+		int sourceStrideA;
+		int interlacedOffsetA;
+
 		switch (instance->ImageFormat)
 		{
 		case VMX_IMAGE_UYVY:
@@ -644,6 +667,30 @@ void VMX_DecodeSlices(VMX_INSTANCE* instance, int startIndex, int count)
 					u.Data + s->Offset[1], u.Stride,
 					v.Data + s->Offset[2], v.Stride,
 					instance->ImageData + (i * sliceStride) + offset, sourceStride, s->PixelSizeInterlaced);
+			}
+			break;
+		case VMX_IMAGE_UYVA:
+			offsetA = 0;
+			sourceStrideA = instance->ImageStrideA << 1;
+			sliceStrideA = sourceStrideA * VMX_SLICE_HEIGHT;
+			interlacedOffsetA = -(instance->ImageStrideA * (instance->AlignedHeight - 1));
+			for (int i = startIndex; i < (startIndex + count); i++)
+			{
+				VMX_SLICE_SET* s = instance->Slices[i];
+				if (s->LowerField) {
+					offset = interlacedOffset; 
+					offsetA = interlacedOffsetA;
+				}
+				VMX_DecodePlane(instance, &y, s);
+				VMX_DecodePlane(instance, &u, s);
+				VMX_DecodePlane(instance, &v, s);
+				VMX_DecodePlane(instance, &a, s);
+				VMX_PlanarToUYVY(y.Data + s->Offset[0], y.Stride,
+					u.Data + s->Offset[1], u.Stride,
+					v.Data + s->Offset[2], v.Stride,
+					instance->ImageData + (i * sliceStride) + offset, sourceStride, s->PixelSizeInterlaced);
+				VMX_PlanarToA(a.Data + s->Offset[3], a.Stride,
+					instance->ImageDataA + (i * sliceStrideA) + offsetA, sourceStrideA, s->PixelSizeInterlaced);
 			}
 			break;
 		case VMX_IMAGE_YUY2:
@@ -746,6 +793,20 @@ VMX_API VMX_ERR VMX_DecodeUYVY(VMX_INSTANCE* instance, BYTE* dst, int stride)
 	return VMX_ERR_OK;
 }
 
+VMX_API VMX_ERR VMX_DecodeUYVA(VMX_INSTANCE* instance, BYTE* dst, int stride)
+{
+	if (!instance) return VMX_ERR_INVALID_INSTANCE;
+	if (stride < (instance->Planes[0].Size.width * 2)) return VMX_ERR_INVALID_PARAMETERS;
+	VMX_ResetStream(instance);
+	instance->ImageData = dst;
+	instance->ImageStride = stride;
+	instance->ImageFormat = VMX_IMAGE_UYVA;
+	instance->ImageDataA = dst + (stride * instance->Planes[0].Size.height);
+	instance->ImageStrideA = stride >> 1;
+	VMX_DecodePlanes(instance);
+	return VMX_ERR_OK;
+}
+
 VMX_API VMX_ERR VMX_DecodeYUY2(VMX_INSTANCE* instance, BYTE* dst, int stride)
 {
 	if (!instance) return VMX_ERR_INVALID_INSTANCE;
@@ -776,6 +837,33 @@ VMX_API VMX_ERR VMX_DecodePreviewUYVY(VMX_INSTANCE* instance, BYTE* dst, int str
 	else
 	{
 		VMX_PlanarToUYVY(instance->Planes[0].Data, instance->Planes[0].Stride, instance->Planes[1].Data, instance->Planes[1].Stride, instance->Planes[2].Data, instance->Planes[2].Stride, dst, stride, previewSize);
+	}
+	return VMX_ERR_OK;
+}
+
+VMX_API VMX_ERR VMX_DecodePreviewUYVA(VMX_INSTANCE* instance, BYTE* dst, int stride)
+{
+	if (!instance) return VMX_ERR_INVALID_INSTANCE;
+	VMX_SIZE previewSize = instance->PreviewSize;
+	if (stride < (previewSize.width * 2)) return VMX_ERR_INVALID_PARAMETERS;
+	VMX_ResetStream(instance);
+	VMX_DecodePlanesPreview(instance, true);
+	BYTE* dstA = dst + (previewSize.height * stride);
+	if (instance->Format == VMX_FORMAT_INTERLACED)
+	{
+		previewSize = instance->PreviewSizeInterlaced;
+		VMX_SIZE sz = { previewSize.width, previewSize.height >> 1 };
+		VMX_PlanarToUYVY(instance->Planes[0].Data, instance->Planes[0].Stride, instance->Planes[1].Data, instance->Planes[1].Stride, instance->Planes[2].Data, instance->Planes[2].Stride, dst, stride << 1, sz);
+		VMX_PlanarToA(instance->Planes[3].Data, instance->Planes[3].Stride, dstA, stride, sz);
+		dst += stride;
+		dstA += (stride >> 1);
+		VMX_PlanarToUYVY(instance->Planes[0].DataLowerPreview, instance->Planes[0].Stride, instance->Planes[1].DataLowerPreview, instance->Planes[1].Stride, instance->Planes[2].DataLowerPreview, instance->Planes[2].Stride, dst, stride << 1, sz);
+		VMX_PlanarToA(instance->Planes[3].DataLowerPreview, instance->Planes[3].Stride, dstA, stride, sz);
+	}
+	else
+	{
+		VMX_PlanarToUYVY(instance->Planes[0].Data, instance->Planes[0].Stride, instance->Planes[1].Data, instance->Planes[1].Stride, instance->Planes[2].Data, instance->Planes[2].Stride, dst, stride, previewSize);
+		VMX_PlanarToA(instance->Planes[3].Data, instance->Planes[3].Stride, dstA, stride >> 1, previewSize);
 	}
 	return VMX_ERR_OK;
 }
@@ -1044,6 +1132,7 @@ void VMX_EncodeSlices(VMX_INSTANCE* instance, int startIndex, int count)
 		int sliceStride = instance->ImageStride * VMX_SLICE_HEIGHT;
 		int sliceStrideU;
 		int sliceStrideV;
+		int sliceStrideA;
 		switch (instance->ImageFormat)
 		{
 		case VMX_IMAGE_UYVY:
@@ -1057,6 +1146,23 @@ void VMX_EncodeSlices(VMX_INSTANCE* instance, int startIndex, int count)
 				VMX_EncodePlane(instance, &y, s);
 				VMX_EncodePlane(instance, &u, s);
 				VMX_EncodePlane(instance, &v, s);
+			}
+			break;
+		case VMX_IMAGE_UYVA:
+			sliceStrideA = instance->ImageStrideA * VMX_SLICE_HEIGHT;
+			for (int i = startIndex; i < (startIndex + count); i++)
+			{
+				VMX_SLICE_SET* s = instance->Slices[i];
+				VMX_UYVYToPlanar(instance->ImageData + (i * sliceStride), instance->ImageStride,
+					y.Data + s->Offset[0], y.Stride,
+					u.Data + s->Offset[1], u.Stride,
+					v.Data + s->Offset[2], v.Stride, s->PixelSize);
+				VMX_AToPlanar(instance->ImageDataA + (i * sliceStrideA), instance->ImageStrideA,
+					a.Data + s->Offset[3], a.Stride, s->PixelSize);
+				VMX_EncodePlane(instance, &y, s);
+				VMX_EncodePlane(instance, &u, s);
+				VMX_EncodePlane(instance, &v, s);
+				VMX_EncodePlane(instance, &a, s);
 			}
 			break;
 		case VMX_IMAGE_YUY2:
@@ -1168,6 +1274,11 @@ void VMX_EncodeSlices(VMX_INSTANCE* instance, int startIndex, int count)
 		int offsetV;
 		int interlacedOffsetV;
 
+		int sourceStrideA;
+		int sliceStrideA;
+		int offsetA;
+		int interlacedOffsetA;
+
 		switch (instance->ImageFormat)
 		{
 		case VMX_IMAGE_UYVY:
@@ -1182,6 +1293,30 @@ void VMX_EncodeSlices(VMX_INSTANCE* instance, int startIndex, int count)
 				VMX_EncodePlane(instance, &y, s);
 				VMX_EncodePlane(instance, &u, s);
 				VMX_EncodePlane(instance, &v, s);
+			}
+			break;
+		case VMX_IMAGE_UYVA:
+			sourceStrideA = instance->ImageStrideA << 1;
+			sliceStrideA = sourceStrideA * VMX_SLICE_HEIGHT;
+			offsetA = 0;
+			interlacedOffsetA = -(instance->ImageStrideA * (instance->AlignedHeight - 1));
+			for (int i = startIndex; i < (startIndex + count); i++)
+			{
+				VMX_SLICE_SET* s = instance->Slices[i];
+				if (s->LowerField) {
+					offset = interlacedOffset;
+					offsetA = interlacedOffsetA;
+				}
+				VMX_UYVYToPlanar(instance->ImageData + (i * sliceStride) + offset, sourceStride,
+					y.Data + s->Offset[0], y.Stride,
+					u.Data + s->Offset[1], u.Stride,
+					v.Data + s->Offset[2], v.Stride, s->PixelSizeInterlaced);
+				VMX_AToPlanar(instance->ImageDataA + (i * sliceStrideA) + offsetA, sourceStrideA,
+					a.Data + s->Offset[3], a.Stride, s->PixelSizeInterlaced);
+				VMX_EncodePlane(instance, &y, s);
+				VMX_EncodePlane(instance, &u, s);
+				VMX_EncodePlane(instance, &v, s);
+				VMX_EncodePlane(instance, &a, s);
 			}
 			break;
 		case VMX_IMAGE_YUY2:
@@ -1310,6 +1445,26 @@ VMX_API VMX_ERR VMX_EncodeUYVY(VMX_INSTANCE* instance, BYTE* src, int stride, in
 	instance->ImageData = src;
 	instance->ImageStride = stride;
 	instance->ImageFormat = VMX_IMAGE_UYVY;
+	if (interlaced)
+	{
+		instance->Format = VMX_FORMAT_INTERLACED;
+	}
+	else {
+		instance->Format = VMX_FORMAT_PROGRESSIVE;
+	}
+	VMX_EncodePlanes(instance);
+	return VMX_ERR_OK;
+}
+VMX_API VMX_ERR VMX_EncodeUYVA(VMX_INSTANCE* instance, BYTE* src, int stride, int interlaced)
+{
+	if (!instance) return VMX_ERR_INVALID_INSTANCE;
+	if (stride < (instance->Planes[0].Size.width * 2)) return VMX_ERR_INVALID_PARAMETERS;
+	VMX_ResetStream(instance);
+	instance->ImageData = src;
+	instance->ImageStride = stride;
+	instance->ImageFormat = VMX_IMAGE_UYVA;
+	instance->ImageDataA = src + (stride * instance->Planes[0].Size.height);
+	instance->ImageStrideA = stride >> 1;
 	if (interlaced)
 	{
 		instance->Format = VMX_FORMAT_INTERLACED;

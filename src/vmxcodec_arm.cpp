@@ -1086,6 +1086,15 @@ void VMX_YUY2ToPlanar(BYTE* src, int srcStride, BYTE* ydst, int ystride, BYTE* u
 	VMX_FreeAlignedStrideBuffer(alignedSrc, alignedStride, srcStride);
 }
 
+
+void VMX_AToPlanar(BYTE* src, int srcStride, BYTE* adst, int astride, VMX_SIZE size) {
+	for (int y = 0; y < size.height; y++) {
+		memcpy(adst, src, size.width);
+		src += srcStride;
+		adst += astride;
+	}
+}
+
 void VMX_UYVYToPlanar(BYTE* src, int srcStride, BYTE* ydst, int ystride, BYTE* udst, int ustride, BYTE* vdst, int vstride, VMX_SIZE size)
 {
 	BYTE* alignedSrc;
@@ -1144,6 +1153,13 @@ void VMX_UYVYToPlanar(BYTE* src, int srcStride, BYTE* ydst, int ystride, BYTE* u
 	VMX_FreeAlignedStrideBuffer(alignedSrc, alignedStride, srcStride);
 }
 
+void VMX_PlanarToA(BYTE* asrc, int astride, BYTE* dst, int dstStride, VMX_SIZE size) {
+	for (int y = 0; y < size.height; y++) {
+		memcpy(dst, asrc, size.width);
+		dst += dstStride;
+		asrc += astride;
+	}
+}
 
 void VMX_PlanarToUYVY(BYTE* ysrc, int ystride, BYTE* usrc, int ustride, BYTE* vsrc, int vstride, BYTE* dst, int dstStride, VMX_SIZE size)
 {

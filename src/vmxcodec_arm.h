@@ -83,6 +83,8 @@ void VMX_ZIG_INVQUANTIZE_IDCT_8X8_128(short* src, unsigned short* matrix, BYTE* 
 void VMX_FDCT_8X8_QUANT_ZIG_128(const BYTE* src, int stride, unsigned short* matrix, short addVal, __m128i* out0, __m128i* out1, __m128i* out2, __m128i* out3, __m128i* out4, __m128i* out5, __m128i* out6, __m128i* out7);
 void VMX_PlanarToUYVY(BYTE* ysrc, int ystride, BYTE* usrc, int ustride, BYTE* vsrc, int vstride, BYTE* dst, int stride, VMX_SIZE size);
 void VMX_UYVYToPlanar(BYTE* src, int stride, BYTE* ydst, int ystride, BYTE* udst, int ustride, BYTE* vdst, int vstride, VMX_SIZE size);
+void VMX_AToPlanar(BYTE* src, int srcStride, BYTE* adst, int astride, VMX_SIZE size);
+void VMX_PlanarToA(BYTE* asrc, int astride, BYTE* dst, int dstStride, VMX_SIZE size);
 void VMX_PlanarToYUY2(BYTE* ysrc, int ystride, BYTE* usrc, int ustride, BYTE* vsrc, int vstride, BYTE* dst, int stride, VMX_SIZE size);
 void VMX_YUY2ToPlanar(BYTE* src, int stride, BYTE* ydst, int ystride, BYTE* udst, int ustride, BYTE* vdst, int vstride, VMX_SIZE size);
 void VMX_NV12ToPlanar(BYTE* srcY, int strideY, BYTE* srcUV, int strideUV, BYTE* ydst, int ystride, BYTE* udst, int ustride, BYTE* vdst, int vstride, VMX_SIZE size);

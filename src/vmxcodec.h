@@ -101,7 +101,8 @@ typedef enum {
 	VMX_IMAGE_YV12,
 	VMX_IMAGE_YUVPLANAR422,
 	VMX_IMAGE_BGRA,
-	VMX_IMAGE_BGRX
+	VMX_IMAGE_BGRX,
+	VMX_IMAGE_UYVA
 } VMX_IMAGE_FORMAT;
 
 struct VMX_SLICE_DATA
@@ -178,6 +179,9 @@ struct VMX_INSTANCE
 
 	BYTE* ImageDataV;
 	int ImageStrideV;
+
+	BYTE* ImageDataA;
+	int ImageStrideA;
 
 	VMX_IMAGE_FORMAT ImageFormat;
 };
@@ -273,6 +277,15 @@ VMX_API VMX_ERR VMX_DecodeBGRX(VMX_INSTANCE* instance, BYTE* dst, int stride);
 VMX_API VMX_ERR VMX_DecodeUYVY(VMX_INSTANCE* instance, BYTE* dst, int stride);
 
 /**
+* Decode frame into a UYVA buffer. This is uyvy422 in FFmpeg, followed by an alpha plane with half the stride.
+*
+* @param[in] instance The instance created using VMX_Create
+* @param[in] dst The destination buffer to write the decoded frame to
+* @param[in] stride The stride of the destination buffer in bytes
+*/
+VMX_API VMX_ERR VMX_DecodeUYVA(VMX_INSTANCE* instance, BYTE* dst, int stride);
+
+/**
 * Decode frame into a YUY2 buffer. This is yuyv422 in FFmpeg
 * 
 * @param[in] instance The instance created using VMX_Create
@@ -313,6 +326,14 @@ VMX_API VMX_ERR VMX_DecodePreviewBGRX(VMX_INSTANCE* instance, BYTE* dst, int str
 VMX_API VMX_ERR VMX_DecodePreviewUYVY(VMX_INSTANCE* instance, BYTE* dst, int stride);
 
 /**
+* Same as VMX_DecodePreviewBGRA except for UYVA output
+* @param[in] instance The instance created using VMX_Create
+* @param[in] dst The destination buffer
+* @param[in] stride The stride in bytes of each row of pixels
+*/
+VMX_API VMX_ERR VMX_DecodePreviewUYVA(VMX_INSTANCE* instance, BYTE* dst, int stride);
+
+/**
 * Same as VMX_DecodePreviewBGRA except for YUY2 output
 * @param[in] instance The instance created using VMX_Create
 * @param[in] dst The destination buffer
@@ -350,6 +371,18 @@ VMX_API VMX_ERR VMX_EncodeBGRX(VMX_INSTANCE* instance, BYTE* src, int stride, in
 * @param[in] interlaced 1 if interlaced, 0 if progressive
 */
 VMX_API VMX_ERR VMX_EncodeUYVY(VMX_INSTANCE* instance, BYTE* src, int stride, int interlaced);
+
+/**
+* Encode a UYVA image.
+* 
+* This is a UYVY image followed immediately by an alpha plane with each line consisting of half the stride.
+* 
+* @param[in] instance The instance created using VMX_Create
+* @param[in] src The source pixels
+* @param[in] stride The stride of the source pixels in bytes
+* @param[in] interlaced 1 if interlaced, 0 if progressive
+*/
+VMX_API VMX_ERR VMX_EncodeUYVA(VMX_INSTANCE* instance, BYTE* src, int stride, int interlaced);
 
 /**
 * Encode a YUY2 image.
