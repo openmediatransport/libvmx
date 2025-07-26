@@ -202,7 +202,9 @@ VMX_API void VMX_Destroy(VMX_INSTANCE* instance);
 
 /**
 * Set the quality to use for the next frame.
+* 
 * If set just before encoding a frame, will override the bitrate targeting.
+* 
 * @param[in] instance The instance created using VMX_Create
 * @param[in] q The quality value in the range of 0 (lowest quality) to 100 (highest quality).
 */
@@ -210,7 +212,9 @@ VMX_API void VMX_SetQuality(VMX_INSTANCE* instance, int q);
 
 /**
 * Retrieve the current quality setting used by the encoder
+* 
 * This is adjusted automatically on the fly to meet the bitrate requirements and will change from frame to frame
+* 
 * @param[in] instance The instance created using VMX_Create
 * @return Returns the quality value
 */
@@ -228,7 +232,9 @@ VMX_API void VMX_GetEncodingParameters(VMX_INSTANCE* instance, int* frameMin, in
 
 /**
 * Set internal encoding parameters to apply from the next frame.
+* 
 * This can be used to fine tune encoding or set custom bitrate targets.
+* 
 * @param[in] instance The instance created using VMX_Create
 * @param[in] frameMin If an encoded frame falls below this value, quality will be increased for next frame
 * @param[in] frameMax If an encoded frame is over this value, quality will be decreased for the next frame
@@ -239,7 +245,9 @@ VMX_API void VMX_SetEncodingParameters(VMX_INSTANCE* instance, int frameMin, int
 
 /**
 * Decode frame into BGRA buffer. BGRA is the same as ARGB32 and A8R8G8B8 on Windows
+* 
 * This should only be used where there is an alpha channel. Otherwise use BGRX.
+* 
 * @param[in] instance The instance created using VMX_Create
 * @param[in] dst The destination buffer to write the decoded frame to
 * @param[in] stride The stride of the destination buffer in bytes
@@ -248,6 +256,7 @@ VMX_API VMX_ERR VMX_DecodeBGRA(VMX_INSTANCE* instance, BYTE* dst, int stride);
 
 /**
 * Decode frame into BGRX buffer. BGRX is the same as RGB32 and X8R8G8B8 on Windows
+* 
 * @param[in] instance The instance created using VMX_Create
 * @param[in] dst The destination buffer to write the decoded frame to
 * @param[in] stride The stride of the destination buffer in bytes
@@ -256,6 +265,7 @@ VMX_API VMX_ERR VMX_DecodeBGRX(VMX_INSTANCE* instance, BYTE* dst, int stride);
 
 /**
 * Decode frame into a UYVY buffer. This is uyvy422 in FFmpeg
+* 
 * @param[in] instance The instance created using VMX_Create
 * @param[in] dst The destination buffer to write the decoded frame to
 * @param[in] stride The stride of the destination buffer in bytes
@@ -264,6 +274,7 @@ VMX_API VMX_ERR VMX_DecodeUYVY(VMX_INSTANCE* instance, BYTE* dst, int stride);
 
 /**
 * Decode frame into a YUY2 buffer. This is yuyv422 in FFmpeg
+* 
 * @param[in] instance The instance created using VMX_Create
 * @param[in] dst The destination buffer to write the decoded frame to
 * @param[in] stride The stride of the destination buffer in bytes
@@ -272,9 +283,13 @@ VMX_API VMX_ERR VMX_DecodeYUY2(VMX_INSTANCE* instance, BYTE* dst, int stride);
 
 /**
 * Decodes a special 1/8th preview of the compressed image
+* 
 * This is calculated by dividing the width and height of the instance by 8 and then making sure the width is at least divisible by 2
+* 
 * Interlaced frames are a special case where the height is subtracted by 1 if not divisible by 2
+* 
 * Example 1920x1080 becomes 240x135 for progressive, 240x134 for interlaced.
+* 
 * @param[in] instance The instance created using VMX_Create
 * @param[in] dst The destination buffer
 * @param[in] stride The stride in bytes of each row of pixels
@@ -308,7 +323,9 @@ VMX_API VMX_ERR VMX_DecodePreviewYUY2(VMX_INSTANCE* instance, BYTE* dst, int str
 
 /**
 * Encode a BGRA image. This is the same as the ARGB32 in DirectShow or A8R8G8B8 in Direct3D
+* 
 * The Alpha channel is included in the encoded image. If you do not require alpha use the BGRX functions instead.
+* 
 * @param[in] instance The instance created using VMX_Create
 * @param[in] src The source pixels
 * @param[in] stride The stride of the source pixels in bytes
@@ -402,9 +419,13 @@ VMX_API void VMX_BGRXToUYVY(BYTE* pSrc, int srcStride, BYTE* pDst, int dstStride
 
 /**
 * Helper function to convert a BGRX image to UYVY. 
+* 
 * Only changed pixels between pSrc and pSrcPrev will be copied.
+* 
 * pDst will be left untouched if no pixels have changed, and no conversion will occur.
+* 
 * The destination buffer must be 64byte aligned.
+* 
 * @param[in] pSrc The source pixels in BGRA format. Alpha is ignored.
 * @param[in] pSrcPrev The previous source pixels in BGRA format. Alpha is ignored.
 * @param[in] srcStride The stride in bytes of each row of source pixels.
@@ -417,6 +438,7 @@ VMX_API int VMX_BGRXToUYVYConditional(BYTE* pSrc, BYTE* pSrcPrev, int srcStride,
 
 /**
 * Helper function to calculate the PSNR of two frames to assess image quality.
+* 
 * The first image should be the original image, and the second the compressed to compare.
 */
 VMX_API float VMX_CalculatePSNR(BYTE* p1, BYTE* p2, int stride, int bytesPerPixel, VMX_SIZE sz);
