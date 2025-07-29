@@ -102,7 +102,9 @@ typedef enum {
 	VMX_IMAGE_YUVPLANAR422,
 	VMX_IMAGE_BGRA,
 	VMX_IMAGE_BGRX,
-	VMX_IMAGE_UYVA
+	VMX_IMAGE_UYVA,
+	VMX_IMAGE_P216,
+	VMX_IMAGE_PA16,
 } VMX_IMAGE_FORMAT;
 
 struct VMX_SLICE_DATA
@@ -123,6 +125,7 @@ struct VMX_SLICE_SET
 	VMX_SLICE_DATA DC;
 	VMX_SLICE_DATA AC;
 	int Offset[VMX_MAX_PLANES];
+	int Offset16[VMX_MAX_PLANES]; //Offset for working with 16bit data
 	VMX_SIZE PixelSize; //Size in pixels of the slice, for copying from source image data. Due to alignment last slice will be only 8 pixels height for 1080 for example.
 	VMX_SIZE PixelSizeInterlaced; //Same as above but for second field alignment adjustment at the mid point.
 	int LowerField; //=1 when this is a lower field slice
@@ -135,7 +138,7 @@ struct VMX_PLANE
 {
 	int Index;
 	VMX_SIZE Size;
-	int Stride;
+	int Stride; //Double this when dealing with 16bit data
 	BYTE* Data;
 	BYTE* DataLowerPreview;
 };
@@ -150,6 +153,7 @@ struct VMX_INSTANCE
 	int Quality;
 	int MinQuality;
 	int DCShift;
+
 	unsigned short* DecodeQualityPresets[VMX_QUALITY_COUNT];
 	unsigned short* EncodeQualityPresets[VMX_QUALITY_COUNT];
 	unsigned short* DecodeMatrix;
@@ -266,6 +270,32 @@ VMX_API VMX_ERR VMX_DecodeBGRA(VMX_INSTANCE* instance, BYTE* dst, int stride);
 * @param[in] stride The stride of the destination buffer in bytes
 */
 VMX_API VMX_ERR VMX_DecodeBGRX(VMX_INSTANCE* instance, BYTE* dst, int stride);
+
+/**
+* Decode frame into a P216 4:2:2 buffer. 
+* 
+* This is a 16bit Y plane followed by an interlaved 16bit UV plane.
+* 
+* Only the most significant 10bits is valid, so the 6 least signifiant bits will be 0. Shifting the values to the right by 6 is sufficient to convert back to 10bit.
+*
+* @param[in] instance The instance created using VMX_Create
+* @param[in] dst The destination buffer to write the decoded frame to
+* @param[in] stride The stride of the destination buffer in bytes
+*/
+VMX_API VMX_ERR VMX_DecodeP216(VMX_INSTANCE* instance, BYTE* dst, int stride);
+
+/**
+* Decode frame into a PA16 4:2:2:4 buffer.
+*
+* This is a 16bit Y plane followed by an interleaved 16bit UV plane followed by a 16bit alpha plane.
+*
+* Only the most significant 10bits is valid, so the 6 least signifiant bits will be 0. Shifting the values to the right by 6 is sufficient to convert back to 10bit.
+*
+* @param[in] instance The instance created using VMX_Create
+* @param[in] dst The destination buffer to write the decoded frame to
+* @param[in] stride The stride of the destination buffer in bytes
+*/
+VMX_API VMX_ERR VMX_DecodePA16(VMX_INSTANCE* instance, BYTE* dst, int stride);
 
 /**
 * Decode frame into a UYVY buffer. This is uyvy422 in FFmpeg
@@ -416,6 +446,35 @@ VMX_API VMX_ERR VMX_EncodeNV12(VMX_INSTANCE* instance, BYTE* srcY, int srcStride
 * @param[in] interlaced 1 if interlaced, 0 if progressive
 */
 VMX_API VMX_ERR VMX_EncodeYV12(VMX_INSTANCE* instance, BYTE* srcY, int srcStrideY, BYTE* srcU, int srcStrideU, BYTE* srcV, int srcStrideV, int interlaced);
+
+/**
+* Encode a 4:2:2 P216 image.
+* 
+* This is a 16bit Y plane followed by an interleaved 16bit UV plane.
+* 
+* Only the most significant 10bits is valid, so the 6 least signifiant bits must be 0. Shifting 10-bit values to the left by 6 is sufficient.
+* 
+* @param[in] instance The instance created using VMX_Create
+* @param[in] src The source pixels
+* @param[in] stride The stride of the source pixels in bytes
+* @param[in] interlaced 1 if interlaced, 0 if progressive
+*/
+VMX_API VMX_ERR VMX_EncodeP216(VMX_INSTANCE* instance, BYTE* src, int stride, int interlaced);
+
+/**
+* Encode a 4:2:2:4 PA16 image.
+*
+* This is a 16bit Y plane followed by an interleaved 16bit UV plane followed by a 16bit alpha plane.
+*
+* Only the most significant 10bits is valid, so the 6 least signifiant bits must be 0. Shifting 10-bit values to the left by 6 is sufficient.
+*
+* @param[in] instance The instance created using VMX_Create
+* @param[in] src The source pixels
+* @param[in] stride The stride of the source pixels in bytes
+* @param[in] interlaced 1 if interlaced, 0 if progressive
+*/
+VMX_API VMX_ERR VMX_EncodePA16(VMX_INSTANCE* instance, BYTE* src, int stride, int interlaced);
+
 
 VMX_API VMX_ERR VMX_EncodePlanar(VMX_INSTANCE* instance, int interlaced);
 

@@ -236,11 +236,25 @@ const short IRND_INV_ROW = 1024 * (6 - BITS_INV_ACC);	//1 << (SHIFT_INV_ROW-1)
 const short IRND_INV_COL = 16 * (BITS_INV_ACC - 3);		// 1 << (SHIFT_INV_COL-1)
 const short IRND_INV_CORR = IRND_INV_COL - 1;			// correction -1.0 and round
 
+//IDCT10
+#define BITS_INV_ACC10 4
+#define SHIFT_INV_ROW10 16 - BITS_INV_ACC10
+#define SHIFT_INV_COL10 1 + BITS_INV_ACC10
+const short IRND_INV_ROW10 = 1024 * (6 - BITS_INV_ACC10);	//1 << (SHIFT_INV_ROW-1)
+const short IRND_INV_COL10 = 16 * (BITS_INV_ACC10 - 3);		// 1 << (SHIFT_INV_COL-1)
+const short IRND_INV_CORR10 = IRND_INV_COL10 - 1;			// correction -1.0 and round
+
 //FDCT
 #define BITS_FRW_ACC   3
 #define SHIFT_FRW_COL  BITS_FRW_ACC
 #define SHIFT_FRW_ROW  (BITS_FRW_ACC + 17) - 4 //Shift 4 less (16) due to divide by 16 at quant stage
 #define RND_FRW_ROW    (1 << (SHIFT_FRW_ROW-1))
+
+//FDCT10
+#define BITS_FRW_ACC10   1
+#define SHIFT_FRW_COL10  BITS_FRW_ACC10
+#define SHIFT_FRW_ROW10  (BITS_FRW_ACC10 + 17) - 2 //Shift 2 less (4) due to divide by 16 at quant stage and preserving extra 2 bits for 10-bit
+#define RND_FRW_ROW10    (1 << (SHIFT_FRW_ROW10-1))
 
 const unsigned short FDCT_ROUND1 = 1;
 const unsigned short FDCT_TAN1 = 13036; //tan(pi / 16)

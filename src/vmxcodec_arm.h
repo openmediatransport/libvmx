@@ -78,21 +78,31 @@ static inline uint64_t _tzcnt_u64(uint64_t t)
 #endif
 #endif
 
+
 void VMX_BROADCAST_DC_8X8_128(short src, BYTE* dst, int stride, short addVal);
+void VMX_BROADCAST_DC_8X8_128_16(short src, BYTE* dst, int stride, short addVal);
 void VMX_ZIG_INVQUANTIZE_IDCT_8X8_128(short* src, unsigned short* matrix, BYTE* dst, int stride, short addVal);
+void VMX_ZIG_INVQUANTIZE_IDCT_8X8_128_16(short* src, unsigned short* matrix, BYTE* dst, int stride, short addVal);
 void VMX_FDCT_8X8_QUANT_ZIG_128(const BYTE* src, int stride, unsigned short* matrix, short addVal, __m128i* out0, __m128i* out1, __m128i* out2, __m128i* out3, __m128i* out4, __m128i* out5, __m128i* out6, __m128i* out7);
+void VMX_FDCT_8X8_QUANT_ZIG_128_16(const BYTE* src, int stride, unsigned short* matrix, short addVal, __m128i* out0, __m128i* out1, __m128i* out2, __m128i* out3, __m128i* out4, __m128i* out5, __m128i* out6, __m128i* out7);
 void VMX_PlanarToUYVY(BYTE* ysrc, int ystride, BYTE* usrc, int ustride, BYTE* vsrc, int vstride, BYTE* dst, int stride, VMX_SIZE size);
+void VMX_PlanarToP216(BYTE* ysrc, int ystride, BYTE* usrc, int ustride, BYTE* vsrc, int vstride, BYTE* dstY, int dstStrideY, BYTE* dstUV, int dstStrideUV, VMX_SIZE size);
 void VMX_UYVYToPlanar(BYTE* src, int stride, BYTE* ydst, int ystride, BYTE* udst, int ustride, BYTE* vdst, int vstride, VMX_SIZE size);
+void VMX_P216ToPlanar(BYTE* srcY, int srcStrideY, BYTE* srcUV, int srcStrideUV, BYTE* ydst, int ystride, BYTE* udst, int ustride, BYTE* vdst, int vstride, VMX_SIZE size);
 void VMX_AToPlanar(BYTE* src, int srcStride, BYTE* adst, int astride, VMX_SIZE size);
+void VMX_A16ToPlanar(BYTE* src, int srcStride, BYTE* adst, int astride, VMX_SIZE size);
 void VMX_PlanarToA(BYTE* asrc, int astride, BYTE* dst, int dstStride, VMX_SIZE size);
+void VMX_PlanarToA16(BYTE* asrc, int astride, BYTE* dst, int dstStride, VMX_SIZE size);
 void VMX_PlanarToYUY2(BYTE* ysrc, int ystride, BYTE* usrc, int ustride, BYTE* vsrc, int vstride, BYTE* dst, int stride, VMX_SIZE size);
 void VMX_YUY2ToPlanar(BYTE* src, int stride, BYTE* ydst, int ystride, BYTE* udst, int ustride, BYTE* vdst, int vstride, VMX_SIZE size);
 void VMX_NV12ToPlanar(BYTE* srcY, int strideY, BYTE* srcUV, int strideUV, BYTE* ydst, int ystride, BYTE* udst, int ustride, BYTE* vdst, int vstride, VMX_SIZE size);
 void VMX_YV12ToPlanar(BYTE* srcY, int srcStrideY, BYTE* srcU, int srcStrideU, BYTE* srcV, int srcStrideV, BYTE* ydst, int ystride, BYTE* udst, int ustride, BYTE* vdst, int vstride, VMX_SIZE size);
 void VMX_EncodePlaneInternal(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s);
+void VMX_EncodePlaneInternal16(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s);
 void VMX_YUV4224ToBGRA(BYTE* pSrcY, int iStrideY, BYTE* pSrcU, int iStrideU, BYTE* pSrcV, int iStrideV, BYTE* pSrcA, int iStrideA, BYTE* pDst, int dstStride, VMX_SIZE sz, const short* colorTable);
 void VMX_BGRAToYUV4224(BYTE* pSrc, int srcStride, BYTE* pDstY, int iStrideY, BYTE* pDstU, int iStrideU, BYTE* pDstV, int iStrideV, BYTE* pDstA, int iStrideA, VMX_SIZE sz, const ShortRGB* colorTables);
 void VMX_DecodePlaneInternal(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s);
+void VMX_DecodePlaneInternal16(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s);
 void VMX_DecodePlanePreviewInternal(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s);
 void VMX_BGRXToUYVYInternal(BYTE* pSrc, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables);
 int VMX_BGRXToUYVYConditionalInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables);

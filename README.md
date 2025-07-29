@@ -7,6 +7,7 @@ It has since been expanded with alpha channel support and incorporated into the 
 ## Features
 * Low latency intra-frame only
 * 4:2:2:4 with alpha channel support
+* 10 bit support
 * Highly optimized AVX2 code capable of encoding 2160p60 on a single Intel i7 core
 * Cross platform. (Windows, Mac, Linux) with ARM NEON support provided via sse2neon
 

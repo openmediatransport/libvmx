@@ -38,6 +38,8 @@
 #endif
 
 void VMX_EncodePlaneInternal256(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s);
+void VMX_EncodePlaneInternal256_16(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s);
 void VMX_DecodePlaneInternal256(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s);
+void VMX_DecodePlaneInternal256_16(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s);
 
 #endif

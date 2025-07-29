@@ -7,6 +7,8 @@ VMX_DecodeYUY2
 VMX_DecodeBGRA
 VMX_DecodeBGRX
 VMX_DecodeUYVA
+VMX_DecodeP216
+VMX_DecodePA16
 VMX_DecodePreviewUYVY
 VMX_DecodePreviewYUY2
 VMX_DecodePreviewBGRX
@@ -19,6 +21,8 @@ VMX_EncodeYV12
 VMX_EncodeBGRA
 VMX_EncodeBGRX
 VMX_EncodeUYVA
+VMX_EncodeP216
+VMX_EncodePA16
 VMX_SetQuality
 VMX_GetQuality
 VMX_Destroy
