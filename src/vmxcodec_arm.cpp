@@ -26,7 +26,6 @@
 #include "vmxcodec_arm.h"
 #if defined(ARM64)
 
-
 #define Get2MagSignV(input) { \
 	__m128i b = _mm_adds_epi16(input, input);  \
 	__m128i c = _mm_srai_epi16(input, 15);  \
@@ -3105,11 +3104,19 @@ void VMX_ZIG_INVQUANTIZE_IDCT_8X8_128_16(short* src, unsigned short* matrix, BYT
 	r_xmm6 = _mm_adds_epi16(r_xmm6, r_xmm4);
 
 	__m128i vadd = _mm_set1_epi16(addVal);
+	__m128i mmax = _mm_set1_epi16(1023);
+	__m128i mmin = _mm_setzero_si128();
+
 	r_xmm7 = _mm_adds_epi16(r_xmm7, vadd);
+	r_xmm7 = _mm_min_epi16(r_xmm7, mmax);
+	r_xmm7 = _mm_max_epi16(r_xmm7, mmin);
 	r_xmm7 = _mm_slli_epi16(r_xmm7, 6);
 
 	r_xmm6 = _mm_srai_epi16(r_xmm6, SHIFT_INV_COL10);
+
 	r_xmm6 = _mm_adds_epi16(r_xmm6, vadd);
+	r_xmm6 = _mm_min_epi16(r_xmm6, mmax);
+	r_xmm6 = _mm_max_epi16(r_xmm6, mmin);
 	r_xmm6 = _mm_slli_epi16(r_xmm6, 6);
 
 	_mm_storeu_si128((__m128i*) (&dst[0]), r_xmm7);
@@ -3126,12 +3133,16 @@ void VMX_ZIG_INVQUANTIZE_IDCT_8X8_128_16(short* src, unsigned short* matrix, BYT
 	r_xmm7 = _mm_srai_epi16(r_xmm7, SHIFT_INV_COL10);
 
 	r_xmm1 = _mm_adds_epi16(r_xmm1, vadd);
+	r_xmm1 = _mm_min_epi16(r_xmm1, mmax);
+	r_xmm1 = _mm_max_epi16(r_xmm1, mmin);
 	r_xmm1 = _mm_slli_epi16(r_xmm1, 6);
 
 	r_xmm5 = _mm_subs_epi16(r_xmm5, temp7);
 	r_xmm5 = _mm_srai_epi16(r_xmm5, SHIFT_INV_COL10);
 
 	r_xmm5 = _mm_adds_epi16(r_xmm5, vadd);
+	r_xmm5 = _mm_min_epi16(r_xmm5, mmax);
+	r_xmm5 = _mm_max_epi16(r_xmm5, mmin);
 	r_xmm5 = _mm_slli_epi16(r_xmm5, 6);
 
 	r_xmm3 = _mm_subs_epi16(r_xmm3, r_xmm4);
@@ -3141,6 +3152,8 @@ void VMX_ZIG_INVQUANTIZE_IDCT_8X8_128_16(short* src, unsigned short* matrix, BYT
 	r_xmm2 = _mm_srai_epi16(r_xmm2, SHIFT_INV_COL10);
 
 	r_xmm6 = _mm_adds_epi16(r_xmm6, vadd);
+	r_xmm6 = _mm_min_epi16(r_xmm6, mmax);
+	r_xmm6 = _mm_max_epi16(r_xmm6, mmin);
 	r_xmm6 = _mm_slli_epi16(r_xmm6, 6);
 
 	_mm_storeu_si128((__m128i*) (&dst[0]), r_xmm1);
@@ -3151,9 +3164,13 @@ void VMX_ZIG_INVQUANTIZE_IDCT_8X8_128_16(short* src, unsigned short* matrix, BYT
 	r_xmm3 = _mm_srai_epi16(r_xmm3, SHIFT_INV_COL10);
 
 	r_xmm2 = _mm_adds_epi16(r_xmm2, vadd);
+	r_xmm2 = _mm_min_epi16(r_xmm2, mmax);
+	r_xmm2 = _mm_max_epi16(r_xmm2, mmin);
 	r_xmm2 = _mm_slli_epi16(r_xmm2, 6);
 
 	r_xmm7 = _mm_adds_epi16(r_xmm7, vadd);
+	r_xmm7 = _mm_min_epi16(r_xmm7, mmax);
+	r_xmm7 = _mm_max_epi16(r_xmm7, mmin);
 	r_xmm7 = _mm_slli_epi16(r_xmm7, 6);
 
 	_mm_storeu_si128((__m128i*) (&dst[0]), r_xmm2);
@@ -3162,6 +3179,8 @@ void VMX_ZIG_INVQUANTIZE_IDCT_8X8_128_16(short* src, unsigned short* matrix, BYT
 	dst += stride;
 
 	r_xmm3 = _mm_adds_epi16(r_xmm3, vadd);
+	r_xmm3 = _mm_min_epi16(r_xmm3, mmax);
+	r_xmm3 = _mm_max_epi16(r_xmm3, mmin);
 	r_xmm3 = _mm_slli_epi16(r_xmm3, 6);
 
 	_mm_storeu_si128((__m128i*) (&dst[0]), r_xmm3);
