@@ -3226,8 +3226,13 @@ void VMX_BROADCAST_DC_8X8_128_16(short src, BYTE* dst, int stride, short addVal)
 {
 	src >>= 1;
 	src += addVal;
-	unsigned short s = src << 6;
-	__m128i a = _mm_set1_epi16((short)s);
+	__m128i a = _mm_set1_epi16(src);
+
+	__m128i mmax = _mm_set1_epi16(1023);
+	__m128i mmin = _mm_setzero_si128();
+	a = _mm_min_epi16(a, mmax);
+	a = _mm_max_epi16(a, mmin);
+	a = _mm_slli_epi16(a, 6);
 
 	_mm_storeu_si128((__m128i*) & dst[0], a);
 	dst += stride;
