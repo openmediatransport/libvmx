@@ -3203,7 +3203,9 @@ void VMX_BROADCAST_DC_8X8_128(short src, BYTE* dst, int stride, short addVal)
 	src >>= 3;
 	src += addVal;
 
-	__m128i a = _mm_set1_epi8((char)src);
+	__m128i b = _mm_set1_epi16(src);
+	__m128i a = _mm_packus_epi16(b, b);
+
 	_mm_storel_epi64((__m128i*) & dst[0], a);
 	dst += stride;
 	_mm_storel_epi64((__m128i*) & dst[0], a);
