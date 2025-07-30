@@ -1253,7 +1253,7 @@ void VMX_EncodePlaneInternal128(VMX_INSTANCE* instance, VMX_PLANE * pPlane, VMX_
 
 	__m128i zo = _mm_setzero_si128();
 
-	int dcshift = instance->DCShift + 2; //Extra
+	int dcshift = instance->DCShift;
 	int dcround = 0;
 	if (dcshift) dcround = 1 << (dcshift - 1);
 	int addVal = 0;
