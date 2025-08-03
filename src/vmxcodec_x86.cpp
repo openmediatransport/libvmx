@@ -1774,7 +1774,7 @@ void VMX_DecodePlanePreviewInternal(VMX_INSTANCE* instance, VMX_PLANE * pPlane, 
 	int width = plane.Stride >> 3; //We need to read the correct number of DC values per row, so we use stride here
 	int height = VMX_SLICE_HEIGHT >> 3;
 	int shift = 0;
-	if (plane.Index == 0)
+	if (plane.Index == 0 || plane.Index == 3)
 	{
 		shift = 128;
 	}
