@@ -1738,7 +1738,7 @@ VMX_API VMX_ERR VMX_EncodeYUY2(VMX_INSTANCE* instance, BYTE* src, int stride, in
 	VMX_ResetStream(instance);
 	instance->ImageData = src;
 	instance->ImageStride = stride;
-	instance->ImageFormat = VMX_IMAGE_UYVY;
+	instance->ImageFormat = VMX_IMAGE_YUY2;
 	VMX_ConfigureInterlaced(instance, interlaced);
 	VMX_EncodePlanes(instance);
 	return VMX_ERR_OK;
