@@ -128,14 +128,14 @@ VMX_API void VMX_Destroy(VMX_INSTANCE* instance)
 					delete instance->Slices[i];
 				}
 			}
-			delete instance->Slices;
+			delete[] instance->Slices;
 		}
 		for (int p = 0; p < VMX_QUALITY_COUNT; p++)
 		{
-			delete instance->EncodeQualityPresets[p];
-			delete instance->DecodeQualityPresets[p];
-			delete instance->EncodeQualityPresets256[p];
-			delete instance->DecodeQualityPresets256[p];
+			delete[] instance->EncodeQualityPresets[p];
+			delete[] instance->DecodeQualityPresets[p];
+			delete[] instance->EncodeQualityPresets256[p];
+			delete[] instance->DecodeQualityPresets256[p];
 		}
 		delete instance;
 	}
