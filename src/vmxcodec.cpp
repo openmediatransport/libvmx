@@ -132,10 +132,10 @@ VMX_API void VMX_Destroy(VMX_INSTANCE* instance)
 		}
 		for (int p = 0; p < VMX_QUALITY_COUNT; p++)
 		{
-			delete[] instance->EncodeQualityPresets[p];
-			delete[] instance->DecodeQualityPresets[p];
-			delete[] instance->EncodeQualityPresets256[p];
-			delete[] instance->DecodeQualityPresets256[p];
+			_mm_free(instance->EncodeQualityPresets[p]);
+			_mm_free(instance->DecodeQualityPresets[p]);
+			_mm_free(instance->EncodeQualityPresets256[p]);
+			_mm_free(instance->DecodeQualityPresets256[p]);
 		}
 		delete instance;
 	}
@@ -305,8 +305,8 @@ VMX_API VMX_INSTANCE* VMX_Create(VMX_SIZE dimensions, VMX_PROFILE profile, VMX_C
 	//128bit SIMD
 	for (int i = 0; i < VMX_QUALITY_COUNT; i++)
 	{
-		instance->DecodeQualityPresets[i] = new unsigned short[VMX_DECODE_MATRIX_COUNT];
-		instance->EncodeQualityPresets[i] = new unsigned short[VMX_ENCODE_MATRIX_COUNT];
+		instance->DecodeQualityPresets[i] = (unsigned short*)_mm_malloc(VMX_DECODE_MATRIX_COUNT * 2, 16);
+		instance->EncodeQualityPresets[i] = (unsigned short*)_mm_malloc(VMX_ENCODE_MATRIX_COUNT * 2, 16);
 		for (int y = 0; y < VMX_DECODE_MATRIX_COUNT; y++)
 		{
 			if (y == 0)
@@ -327,9 +327,8 @@ VMX_API VMX_INSTANCE* VMX_Create(VMX_SIZE dimensions, VMX_PROFILE profile, VMX_C
 	//Duplicate matrices for 256bit
 	for (int i = 0; i < VMX_QUALITY_COUNT; i++)
 	{
-		instance->DecodeQualityPresets256[i] = new unsigned short[VMX_DECODE_MATRIX_COUNT * 2];
-		instance->EncodeQualityPresets256[i] = new unsigned short[VMX_ENCODE_MATRIX_COUNT * 2];
-
+		instance->DecodeQualityPresets256[i] = (unsigned short*)_mm_malloc(VMX_DECODE_MATRIX_COUNT * 4, 32);
+		instance->EncodeQualityPresets256[i] = (unsigned short*)_mm_malloc(VMX_ENCODE_MATRIX_COUNT * 4, 32);
 		for (int y = 0; y < VMX_DECODE_MATRIX_COUNT; y += 8)
 		{
 			memcpy(&instance->DecodeQualityPresets256[i][y * 2], &instance->DecodeQualityPresets[i][y], 16);

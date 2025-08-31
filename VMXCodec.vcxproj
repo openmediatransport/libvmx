@@ -214,8 +214,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;VMXCODEC_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <GenerateAlternateCodePaths>AVX2</GenerateAlternateCodePaths>
+      <UseProcessorExtensions>SSE42</UseProcessorExtensions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -372,6 +374,8 @@
     <ClCompile Include="src\vmxcodec_avx2.cpp">
       <UseProcessorExtensions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AVX2</UseProcessorExtensions>
       <UseProcessorExtensions Condition="'$(Configuration)|$(Platform)'=='Release Library|x64'">AVX2</UseProcessorExtensions>
+      <GenerateAlternateCodePaths Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AVX2</GenerateAlternateCodePaths>
+      <UseProcessorExtensions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AVX2</UseProcessorExtensions>
     </ClCompile>
     <ClCompile Include="src\vmxcodec_x86.cpp" />
   </ItemGroup>

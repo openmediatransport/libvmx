@@ -53,21 +53,21 @@
 //===========================
 //IDCT Tables for 256bit SIMD
 //===========================
-__declspec(align(16)) const short one_corr_256[16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-__declspec(align(16)) const short round_inv_row_256[16] = { IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0 };
-__declspec(align(16)) const short round_inv_col_256[16] = { IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL };
-__declspec(align(16)) const short round_inv_corr_256[16] = { IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR };
+__declspec(align(32)) const short one_corr_256[16] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+__declspec(align(32)) const short round_inv_row_256[16] = { IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0 };
+__declspec(align(32)) const short round_inv_col_256[16] = { IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL };
+__declspec(align(32)) const short round_inv_corr_256[16] = { IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR };
 
-__declspec(align(16)) const short round_inv_row_256_10[16] = { IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0 };
-__declspec(align(16)) const short round_inv_col_256_10[16] = { IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10 };
-__declspec(align(16)) const short round_inv_corr_256_10[16] = { IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10 };
+__declspec(align(32)) const short round_inv_row_256_10[16] = { IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0 };
+__declspec(align(32)) const short round_inv_col_256_10[16] = { IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10 };
+__declspec(align(32)) const short round_inv_corr_256_10[16] = { IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10 };
 
-__declspec(align(16)) const short tg_1_16_256[16] = { 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036 }; // tg * (2<<16) + 0.5
-__declspec(align(16)) const short tg_2_16_256[16] = { 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146 }; // tg * (2<<16) + 0.5
-__declspec(align(16)) const short tg_3_16_256[16] = { -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746 }; // tg * (2<<16) + 0.5
-__declspec(align(16)) const short cos_4_16_256[16] = { -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195 };// cos * (2<<16) + 0.5
+__declspec(align(32)) const short tg_1_16_256[16] = { 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036 }; // tg * (2<<16) + 0.5
+__declspec(align(32)) const short tg_2_16_256[16] = { 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146 }; // tg * (2<<16) + 0.5
+__declspec(align(32)) const short tg_3_16_256[16] = { -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746 }; // tg * (2<<16) + 0.5
+__declspec(align(32)) const short cos_4_16_256[16] = { -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195 };// cos * (2<<16) + 0.5
 
-__declspec(align(16)) const short tab_i_04_256[] = {
+__declspec(align(32)) const short tab_i_04_256[] = {
 	16384, 21407, 16384, 8867,
 	16384, -8867, 16384, -21407,
 	16384, 21407, 16384, 8867,
@@ -88,7 +88,7 @@ __declspec(align(16)) const short tab_i_04_256[] = {
 	12873, 4520, -22725, -12873, 
 	4520, 19266, 19266, -22725 }; 
 
-__declspec(align(16)) const short tab_i_17_256[] = {
+__declspec(align(32)) const short tab_i_17_256[] = {
 	22725, 29692, 22725, 12299,
 	22725, -12299, 22725, -29692,
 	22725, 29692, 22725, 12299,
@@ -109,7 +109,7 @@ __declspec(align(16)) const short tab_i_17_256[] = {
 	17855, 6270, -31521, -17855,
 	6270, 26722, 26722, -31521 }; 
 
-__declspec(align(16)) const short tab_i_26_256[] = {
+__declspec(align(32)) const short tab_i_26_256[] = {
 	21407, 27969, 21407, 11585,
 	21407, -11585, 21407, -27969, 
 	21407, 27969, 21407, 11585,
@@ -130,7 +130,7 @@ __declspec(align(16)) const short tab_i_26_256[] = {
 	16819, 5906, -29692, -16819, 
 	5906, 25172, 25172, -29692 }; 
 
-__declspec(align(16)) const short tab_i_35_256[] = {
+__declspec(align(32)) const short tab_i_35_256[] = {
 	19266, 25172, 19266, 10426,
 	19266, -10426, 19266, -25172,
 	19266, 25172, 19266, 10426,
@@ -155,28 +155,28 @@ __declspec(align(16)) const short tab_i_35_256[] = {
 //FDCT Tables for 256bit SIMD
 //===========================
 
-__declspec(align(16)) const unsigned short ftab1_256[] = {
+__declspec(align(32)) const unsigned short ftab1_256[] = {
 	16384, 16384, 22725, 19266, 56669, 44129, 42811, 52663,16384, 16384, 22725, 19266, 56669, 44129, 42811, 52663,
 	16384, 16384, 12873, 4520, 21407, 8867, 19266, 61016,16384, 16384, 12873, 4520, 21407, 8867, 19266, 61016,
 	16384, 49152, 12873, 42811, 21407, 56669, 19266, 42811,16384, 49152, 12873, 42811, 21407, 56669, 19266, 42811,
 	49152, 16384, 4520, 19266, 8867, 44129, 4520, 52663,49152, 16384, 4520, 19266, 8867, 44129, 4520, 52663
 };
 
-__declspec(align(16)) const unsigned short ftab2_256[] = {
+__declspec(align(32)) const unsigned short ftab2_256[] = {
 	22725, 22725, 31521, 26722, 53237, 35844, 34015, 47681,22725, 22725, 31521, 26722, 53237, 35844, 34015, 47681,
 	22725, 22725, 17855, 6270, 29692, 12299, 26722, 59266,22725, 22725, 17855, 6270, 29692, 12299, 26722, 59266,
 	22725, 42811, 17855, 34015, 29692, 53237, 26722, 34015,22725, 42811, 17855, 34015, 29692, 53237, 26722, 34015,
 	42811, 22725, 6270, 26722, 12299, 35844, 6270, 47681,42811, 22725, 6270, 26722, 12299, 35844, 6270, 47681
 };
 
-__declspec(align(16)) const unsigned short ftab3_256[] = {
+__declspec(align(32)) const unsigned short ftab3_256[] = {
 	21407, 21407, 29692, 25172, 53951, 37567, 35844, 48717,21407, 21407, 29692, 25172, 53951, 37567, 35844, 48717,
 	21407, 21407, 16819, 5906, 27969, 11585, 25172, 59630,21407, 21407, 16819, 5906, 27969, 11585, 25172, 59630,
 	21407, 44129, 16819, 35844, 27969, 53951, 25172, 35844,21407, 44129, 16819, 35844, 27969, 53951, 25172, 35844,
 	44129, 21407, 5906, 25172, 11585, 37567, 5906, 48717,44129, 21407, 5906, 25172, 11585, 37567, 5906, 48717
 };
 
-__declspec(align(16)) const unsigned short ftab4_256[] = {
+__declspec(align(32)) const unsigned short ftab4_256[] = {
 	19266, 19266, 26722, 22654, 55110, 40364, 38814, 50399,19266, 19266, 26722, 22654, 55110, 40364, 38814, 50399,
 	19266, 19266, 15137, 5315, 25172, 10426, 22654, 60221,19266, 19266, 15137, 5315, 25172, 10426, 22654, 60221,
 	19266, 46270, 15137, 38814, 25172, 55110, 22654, 38814,19266, 46270, 15137, 38814, 25172, 55110, 22654, 38814,
@@ -1532,14 +1532,14 @@ void VMX_FDCT_8X8_QUANT_ZIG_256(const BYTE* src, int stride, unsigned short* mat
 	//b7 = _mm256_slli_epi16(b7, 4);
 
 	//load correction
-	__m256i c0 = _mm256_loadu_si256((__m256i*) & matrix[0]);
-	__m256i c1 = _mm256_loadu_si256((__m256i*) & matrix[16]);
-	__m256i c2 = _mm256_loadu_si256((__m256i*) & matrix[32]);
-	__m256i c3 = _mm256_loadu_si256((__m256i*) & matrix[48]);
-	__m256i c4 = _mm256_loadu_si256((__m256i*) & matrix[64]);
-	__m256i c5 = _mm256_loadu_si256((__m256i*) & matrix[80]);
-	__m256i c6 = _mm256_loadu_si256((__m256i*) & matrix[96]);
-	__m256i c7 = _mm256_loadu_si256((__m256i*) & matrix[112]);
+	__m256i c0 = _mm256_load_si256((__m256i*) & matrix[0]);
+	__m256i c1 = _mm256_load_si256((__m256i*) & matrix[16]);
+	__m256i c2 = _mm256_load_si256((__m256i*) & matrix[32]);
+	__m256i c3 = _mm256_load_si256((__m256i*) & matrix[48]);
+	__m256i c4 = _mm256_load_si256((__m256i*) & matrix[64]);
+	__m256i c5 = _mm256_load_si256((__m256i*) & matrix[80]);
+	__m256i c6 = _mm256_load_si256((__m256i*) & matrix[96]);
+	__m256i c7 = _mm256_load_si256((__m256i*) & matrix[112]);
 
 	//add correction
 	b0 = _mm256_add_epi16(b0, c0);
@@ -1552,14 +1552,14 @@ void VMX_FDCT_8X8_QUANT_ZIG_256(const BYTE* src, int stride, unsigned short* mat
 	b7 = _mm256_add_epi16(b7, c7);
 
 	//load reciprocal
-	c0 = _mm256_loadu_si256((__m256i*) & matrix[128]);
-	c1 = _mm256_loadu_si256((__m256i*) & matrix[144]);
-	c2 = _mm256_loadu_si256((__m256i*) & matrix[160]);
-	c3 = _mm256_loadu_si256((__m256i*) & matrix[176]);
-	c4 = _mm256_loadu_si256((__m256i*) & matrix[192]);
-	c5 = _mm256_loadu_si256((__m256i*) & matrix[208]);
-	c6 = _mm256_loadu_si256((__m256i*) & matrix[224]);
-	c7 = _mm256_loadu_si256((__m256i*) & matrix[240]);
+	c0 = _mm256_load_si256((__m256i*) & matrix[128]);
+	c1 = _mm256_load_si256((__m256i*) & matrix[144]);
+	c2 = _mm256_load_si256((__m256i*) & matrix[160]);
+	c3 = _mm256_load_si256((__m256i*) & matrix[176]);
+	c4 = _mm256_load_si256((__m256i*) & matrix[192]);
+	c5 = _mm256_load_si256((__m256i*) & matrix[208]);
+	c6 = _mm256_load_si256((__m256i*) & matrix[224]);
+	c7 = _mm256_load_si256((__m256i*) & matrix[240]);
 
 
 	//multiply reciprocal
@@ -1573,14 +1573,14 @@ void VMX_FDCT_8X8_QUANT_ZIG_256(const BYTE* src, int stride, unsigned short* mat
 	b7 = _mm256_mulhi_epu16(b7, c7);
 
 	//load scale
-	c0 = _mm256_loadu_si256((__m256i*) & matrix[256]);
-	c1 = _mm256_loadu_si256((__m256i*) & matrix[272]);
-	c2 = _mm256_loadu_si256((__m256i*) & matrix[288]);
-	c3 = _mm256_loadu_si256((__m256i*) & matrix[304]);
-	c4 = _mm256_loadu_si256((__m256i*) & matrix[320]);
-	c5 = _mm256_loadu_si256((__m256i*) & matrix[336]);
-	c6 = _mm256_loadu_si256((__m256i*) & matrix[352]);
-	c7 = _mm256_loadu_si256((__m256i*) & matrix[368]);
+	c0 = _mm256_load_si256((__m256i*) & matrix[256]);
+	c1 = _mm256_load_si256((__m256i*) & matrix[272]);
+	c2 = _mm256_load_si256((__m256i*) & matrix[288]);
+	c3 = _mm256_load_si256((__m256i*) & matrix[304]);
+	c4 = _mm256_load_si256((__m256i*) & matrix[320]);
+	c5 = _mm256_load_si256((__m256i*) & matrix[336]);
+	c6 = _mm256_load_si256((__m256i*) & matrix[352]);
+	c7 = _mm256_load_si256((__m256i*) & matrix[368]);
 
 	//multiply scale
 	b0 = _mm256_mulhi_epu16(b0, c0);
@@ -2084,14 +2084,14 @@ void VMX_FDCT_8X8_QUANT_ZIG_256_16(const BYTE* src, int stride, unsigned short* 
 	//b7 = _mm256_slli_epi16(b7, 4);
 
 	//load correction
-	__m256i c0 = _mm256_loadu_si256((__m256i*) & matrix[0]);
-	__m256i c1 = _mm256_loadu_si256((__m256i*) & matrix[16]);
-	__m256i c2 = _mm256_loadu_si256((__m256i*) & matrix[32]);
-	__m256i c3 = _mm256_loadu_si256((__m256i*) & matrix[48]);
-	__m256i c4 = _mm256_loadu_si256((__m256i*) & matrix[64]);
-	__m256i c5 = _mm256_loadu_si256((__m256i*) & matrix[80]);
-	__m256i c6 = _mm256_loadu_si256((__m256i*) & matrix[96]);
-	__m256i c7 = _mm256_loadu_si256((__m256i*) & matrix[112]);
+	__m256i c0 = _mm256_load_si256((__m256i*) & matrix[0]);
+	__m256i c1 = _mm256_load_si256((__m256i*) & matrix[16]);
+	__m256i c2 = _mm256_load_si256((__m256i*) & matrix[32]);
+	__m256i c3 = _mm256_load_si256((__m256i*) & matrix[48]);
+	__m256i c4 = _mm256_load_si256((__m256i*) & matrix[64]);
+	__m256i c5 = _mm256_load_si256((__m256i*) & matrix[80]);
+	__m256i c6 = _mm256_load_si256((__m256i*) & matrix[96]);
+	__m256i c7 = _mm256_load_si256((__m256i*) & matrix[112]);
 
 	//add correction
 	b0 = _mm256_add_epi16(b0, c0);
@@ -2104,14 +2104,14 @@ void VMX_FDCT_8X8_QUANT_ZIG_256_16(const BYTE* src, int stride, unsigned short* 
 	b7 = _mm256_add_epi16(b7, c7);
 
 	//load reciprocal
-	c0 = _mm256_loadu_si256((__m256i*) & matrix[128]);
-	c1 = _mm256_loadu_si256((__m256i*) & matrix[144]);
-	c2 = _mm256_loadu_si256((__m256i*) & matrix[160]);
-	c3 = _mm256_loadu_si256((__m256i*) & matrix[176]);
-	c4 = _mm256_loadu_si256((__m256i*) & matrix[192]);
-	c5 = _mm256_loadu_si256((__m256i*) & matrix[208]);
-	c6 = _mm256_loadu_si256((__m256i*) & matrix[224]);
-	c7 = _mm256_loadu_si256((__m256i*) & matrix[240]);
+	c0 = _mm256_load_si256((__m256i*) & matrix[128]);
+	c1 = _mm256_load_si256((__m256i*) & matrix[144]);
+	c2 = _mm256_load_si256((__m256i*) & matrix[160]);
+	c3 = _mm256_load_si256((__m256i*) & matrix[176]);
+	c4 = _mm256_load_si256((__m256i*) & matrix[192]);
+	c5 = _mm256_load_si256((__m256i*) & matrix[208]);
+	c6 = _mm256_load_si256((__m256i*) & matrix[224]);
+	c7 = _mm256_load_si256((__m256i*) & matrix[240]);
 
 
 	//multiply reciprocal
@@ -2125,14 +2125,14 @@ void VMX_FDCT_8X8_QUANT_ZIG_256_16(const BYTE* src, int stride, unsigned short* 
 	b7 = _mm256_mulhi_epu16(b7, c7);
 
 	//load scale
-	c0 = _mm256_loadu_si256((__m256i*) & matrix[256]);
-	c1 = _mm256_loadu_si256((__m256i*) & matrix[272]);
-	c2 = _mm256_loadu_si256((__m256i*) & matrix[288]);
-	c3 = _mm256_loadu_si256((__m256i*) & matrix[304]);
-	c4 = _mm256_loadu_si256((__m256i*) & matrix[320]);
-	c5 = _mm256_loadu_si256((__m256i*) & matrix[336]);
-	c6 = _mm256_loadu_si256((__m256i*) & matrix[352]);
-	c7 = _mm256_loadu_si256((__m256i*) & matrix[368]);
+	c0 = _mm256_load_si256((__m256i*) & matrix[256]);
+	c1 = _mm256_load_si256((__m256i*) & matrix[272]);
+	c2 = _mm256_load_si256((__m256i*) & matrix[288]);
+	c3 = _mm256_load_si256((__m256i*) & matrix[304]);
+	c4 = _mm256_load_si256((__m256i*) & matrix[320]);
+	c5 = _mm256_load_si256((__m256i*) & matrix[336]);
+	c6 = _mm256_load_si256((__m256i*) & matrix[352]);
+	c7 = _mm256_load_si256((__m256i*) & matrix[368]);
 
 	//multiply scale
 	b0 = _mm256_mulhi_epu16(b0, c0);
