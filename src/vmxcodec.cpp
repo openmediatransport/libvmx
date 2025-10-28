@@ -41,12 +41,8 @@
 
 using namespace std;
 
-VMX_API void VMX_SetQuality(VMX_INSTANCE* instance, int q)
+static inline void VMX_SetQualityInternal(VMX_INSTANCE* instance, int q) 
 {
-	if (!instance) return;
-	if (q > VMX_MAXQ) q = VMX_MAXQ;
-	if (q < instance->MinQuality) q = instance->MinQuality;
-
 	int index = 0;
 	for (int i = 0; i < VMX_QUALITY_COUNT; i++)
 	{
@@ -61,6 +57,14 @@ VMX_API void VMX_SetQuality(VMX_INSTANCE* instance, int q)
 	instance->EncodeMatrix = instance->EncodeQualityPresets[index];
 	instance->DecodeMatrix256 = instance->DecodeQualityPresets256[index];
 	instance->EncodeMatrix256 = instance->EncodeQualityPresets256[index];
+}
+
+VMX_API void VMX_SetQuality(VMX_INSTANCE* instance, int q)
+{
+	if (!instance) return;
+	if (q > VMX_MAXQ) q = VMX_MAXQ;
+	if (q < instance->MinQuality) q = instance->MinQuality;
+	VMX_SetQualityInternal(instance, q);
 }
 
 VMX_API int VMX_GetQuality(VMX_INSTANCE* instance)
@@ -513,7 +517,8 @@ VMX_API VMX_ERR VMX_LoadFrom(VMX_INSTANCE* instance, BYTE* data, int dataLen)
 		if (sliceCount == 14 && instance->SliceCount == 270) sliceCount = 270; //Special case for 8K 4320p
 		if (sliceCount == instance->SliceCount)
 		{
-			VMX_SetQuality(instance, b[offset + 1]);
+			//Bypass min/max checking in setquality to ensure exact quality is used when decoding
+			VMX_SetQualityInternal(instance, b[offset + 1]);
 			b += (3 + offset);
 			uint32_t len = 0;
 			for (int i = 0; i < instance->SliceCount; i++)
