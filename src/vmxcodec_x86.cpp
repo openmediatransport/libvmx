@@ -2045,8 +2045,8 @@ void VMX_P216ToPlanar(BYTE* srcY, int srcStrideY, BYTE* srcUV, int srcStrideUV, 
 	{
 		for (int x = 0; x < (size.width * 2); x += 32)
 		{
-			__m128i uv1 = _mm_loadu_si128((__m128i*) & srcUV[x]); //uuvvuuvvuuvvuuvv
-			__m128i uv2 = _mm_loadu_si128((__m128i*) & srcUV[x + 16]);
+			__m128i uv1 = _mm_loadu_si128((__m128i*) & pSrc[x]); //uuvvuuvvuuvvuuvv
+			__m128i uv2 = _mm_loadu_si128((__m128i*) & pSrc[x + 16]);
 
 			__m128i u1 = _mm_shuffle_epi8(uv1, uShuffle);
 			__m128i u2 = _mm_slli_si128(_mm_shuffle_epi8(uv2, uShuffle), 8);
@@ -2065,7 +2065,7 @@ void VMX_P216ToPlanar(BYTE* srcY, int srcStrideY, BYTE* srcUV, int srcStrideUV, 
 		}
 		udst += ustride;
 		vdst += vstride;
-		srcUV += alignedStride;
+		pSrc += alignedStride;
 		pU = udst;
 		pV = vdst;
 	}
@@ -2192,8 +2192,9 @@ void VMX_NV12ToPlanar(BYTE* srcY, int srcStrideY, BYTE* srcUV, int srcStrideUV, 
 
 	BYTE* alignedSrc;
 	int alignedStride;
-	VMX_CreateAlignedStrideBuffer(srcUV, srcStrideUV, size, &alignedSrc, &alignedStride, 16, 1);
-	VMX_CopyToAlignedStrideBuffer(alignedSrc, alignedStride, srcUV, srcStrideUV, size, 1);
+	VMX_SIZE uvSize = { size.width, size.height >> 1 };
+	VMX_CreateAlignedStrideBuffer(srcUV, srcStrideUV, uvSize, &alignedSrc, &alignedStride, 16, 1);
+	VMX_CopyToAlignedStrideBuffer(alignedSrc, alignedStride, srcUV, srcStrideUV, uvSize, 1);
 
 	BYTE* pU = udst;
 	BYTE* pV = vdst;
@@ -2201,8 +2202,8 @@ void VMX_NV12ToPlanar(BYTE* srcY, int srcStrideY, BYTE* srcUV, int srcStrideUV, 
 	BYTE* pSrc = alignedSrc;
 
 	//UV Plane
-	int height = size.height >> 1;
-	int width = size.width;
+	int height = uvSize.height;
+	int width = uvSize.width;
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x += 16) {
 			__m128i uv = _mm_loadu_si128((__m128i*) & pSrc[x]); //uvuvuvuvuvuvuvuv
