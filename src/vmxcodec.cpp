@@ -229,6 +229,10 @@ VMX_API VMX_INSTANCE* VMX_Create(VMX_SIZE dimensions, VMX_PROFILE profile, VMX_C
 	instance->avx2 = 0;
 
 #if defined(X64)
+	//Require both AVX2 and BMI2 for the 256-bit path.
+	//That path only actually uses BMI1 (BEXTR in the entropy decoder, TZCNT when
+	//scanning AC runs). BMI2 is still checked because AVX2 and BMI2 arrived together
+	//on Haswell, which is the intended baseline; anything thinner stays on SSE.
 	#if defined(__GNUC__)
 		if (__builtin_cpu_supports("avx2")) {
 			instance->avx2 = 1;
