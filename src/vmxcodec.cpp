@@ -490,6 +490,47 @@ inline void VMX_ConfigureInterlaced(VMX_INSTANCE* instance, int interlaced) {
 	}
 }
 
+//Append the byte-aligned zero-run code emitted by EncodeZeros for an all-zero plane.
+static int VMX_AppendZeroRun(BYTE* dst, uint32_t numZeros)
+{
+	if (!numZeros) return 0;
+
+	int valueBits = 0;
+	for (uint32_t value = numZeros; value; value >>= 1)
+	{
+		valueBits++;
+	}
+
+	const int codeBits = valueBits * 2;
+	const int paddedBits = (codeBits + 7) & ~7;
+	buffer_t code = (1ULL << (codeBits - 1)) | numZeros;
+	code <<= paddedBits - codeBits;
+
+	const int bytes = paddedBits >> 3;
+	for (int i = 0; i < bytes; i++)
+	{
+		dst[i] = (BYTE)(code >> ((bytes - i - 1) * 8));
+	}
+	return bytes;
+}
+
+//Builds the AC stream for a slice in which every plane is entirely zero.
+//One run per plane, each byte aligned, because the decoder flushes to a byte boundary between planes.
+static int VMX_CreateEmptyACStream(VMX_INSTANCE* instance, BYTE* dst)
+{
+	int len = 0;
+	for (int i = 0; i < VMX_MAX_PLANES; i++)
+	{
+		//The AC entropy stream contains one term per sample in each 8x8 block.
+		const uint32_t numTerms = (uint32_t)instance->Planes[i].Stride * VMX_SLICE_HEIGHT;
+		len += VMX_AppendZeroRun(dst + len, numTerms);
+	}
+
+	//The bit reader loads buffer_t at a time and may read beyond the encoded bits.
+	memset(dst + len, 0xFF, sizeof(buffer_t));
+	return len + sizeof(buffer_t);
+}
+
 VMX_API VMX_ERR VMX_LoadFrom(VMX_INSTANCE* instance, BYTE* data, int dataLen)
 {
 	if (!instance) return VMX_ERR_INVALID_INSTANCE;
@@ -547,6 +588,19 @@ VMX_API VMX_ERR VMX_LoadFrom(VMX_INSTANCE* instance, BYTE* data, int dataLen)
 					memcpy(d.Stream, b, len);
 					b += len;
 					instance->Slices[i]->AC.StreamLength = len;
+				}
+			}
+			else
+			{
+				//A preview only image has no AC section.
+				//Install a compact canonical all-zero AC stream
+				//so a full decode cannot consume a previous frame's AC.
+				BYTE emptyAC[(VMX_MAX_PLANES + 1) * sizeof(buffer_t)];
+				const int emptyACLen = VMX_CreateEmptyACStream(instance, emptyAC);
+				for (int i = 0; i < instance->SliceCount; i++)
+				{
+					memcpy(instance->Slices[i]->AC.Stream, emptyAC, emptyACLen);
+					instance->Slices[i]->AC.StreamLength = 0;
 				}
 			}
 			//instance->Format = (VMX_FORMAT)format;
