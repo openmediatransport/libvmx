@@ -2167,14 +2167,14 @@ void VMX_PlanarToP216(BYTE* ysrc, int ystride, BYTE* usrc, int ustride, BYTE* vs
 			__m128i uv1 = _mm_unpacklo_epi16(u, v);
 			__m128i uv2 = _mm_unpackhi_epi16(u, v);
 
-			_mm_storeu_si128((__m128i*) & dstUV[x], uv1);
-			_mm_storeu_si128((__m128i*) & dstUV[x + 16], uv2);
+			_mm_storeu_si128((__m128i*) & pDst[x], uv1);
+			_mm_storeu_si128((__m128i*) & pDst[x + 16], uv2);
 			pU += 16;
 			pV += 16;
 		}
 		usrc += ustride;
 		vsrc += vstride;
-		dstUV += alignedStride;
+		pDst += alignedStride;
 		pU = usrc;
 		pV = vsrc;
 	}
