@@ -24,6 +24,7 @@
 */
 #include "pch.h"
 #include "vmxcodec.h"
+#include "thread_tasks.h"
 #include <thread>
 #include <chrono>
 #include <iostream>
@@ -564,6 +565,7 @@ VMX_API VMX_ERR VMX_LoadFrom(VMX_INSTANCE* instance, BYTE* data, int dataLen)
 	return VMX_ERR_OK;
 }
 
+extern "C" {
 VMX_API void VMX_DecodePlanePreview(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s)
 {
 	VMX_DecodePlanePreviewInternal(instance, pPlane, s);
@@ -577,6 +579,7 @@ VMX_API void VMX_DecodePlane(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLIC
 VMX_API void VMX_DecodePlane16(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s)
 {
 	VMX_DecodePlaneInternal16(instance, pPlane, s);
+}
 }
 
 void VMX_DecodeSlices(VMX_INSTANCE* instance, int startIndex, int count)
