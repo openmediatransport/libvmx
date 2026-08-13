@@ -229,6 +229,10 @@ VMX_API VMX_INSTANCE* VMX_Create(VMX_SIZE dimensions, VMX_PROFILE profile, VMX_C
 	instance->avx2 = 0;
 
 #if defined(X64)
+	//Require both AVX2 and BMI2 for the 256-bit path.
+	//That path only actually uses BMI1 + LZCNT (BEXTR in the entropy decoder, TZCNT when
+	//scanning AC runs). 
+	//Checking for BMI2 is simpler than an extra check for LZCNT, since hardly any CPUs are still in use that have BMI1, AVX2 and LZCNT without BMI2 anyway.
 	#if defined(__GNUC__)
 		if (__builtin_cpu_supports("avx2")) {
 			instance->avx2 = 1;
