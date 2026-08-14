@@ -412,6 +412,11 @@ VMX_API VMX_INSTANCE* VMX_Create(VMX_SIZE dimensions, VMX_PROFILE profile, VMX_C
 	int dcLen = instance->Planes[0].Stride * VMX_SLICE_HEIGHT * 2;
 	int acLen = instance->Planes[0].Stride * VMX_SLICE_HEIGHT * 4;
 
+	//Each ac stream contains 0xFF to prevent any corrupt frames overflowing the buffer at the entropy stage
+	//The 2 bit code 11 is needed per pixel so (width * sliceHeight * planes) / 8 is enough
+	//MaxStreamLength is reduced by this amount so it can't be overwritten in VMX_LoadFrom
+	int protectionBytes = (instance->Planes[0].Stride * VMX_SLICE_HEIGHT * 4) >> 3;
+
 	int offsets[4] = { 0,0,0,0 };
 	int offsets16[4] = { 0,0,0,0 };
 	for (int i = 0; i < instance->SliceCount; i++)
@@ -421,7 +426,7 @@ VMX_API VMX_INSTANCE* VMX_Create(VMX_SIZE dimensions, VMX_PROFILE profile, VMX_C
 		instance->Slices[i]->AC.Stream = (BYTE*)_mm_malloc(acLen, VMX_ALIGNMENT);
 		instance->Slices[i]->AC.StreamLength = 0;
 		instance->Slices[i]->DC.StreamLength = 0;
-		instance->Slices[i]->AC.MaxStreamLength = acLen;
+		instance->Slices[i]->AC.MaxStreamLength = acLen - protectionBytes;
 		instance->Slices[i]->DC.MaxStreamLength = dcLen;
 		memset(instance->Slices[i]->DC.Stream, 0xFF, dcLen);
 		memset(instance->Slices[i]->AC.Stream, 0xFF, acLen);
