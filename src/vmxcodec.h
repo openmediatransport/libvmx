@@ -566,6 +566,3 @@ VMX_API int VMX_Test(VMX_INSTANCE* instance, short* src, short* dst);
 }
 #endif
 
-//Private functions
-void VMX_ResetData(VMX_SLICE_DATA* s);
-void VMX_ResetStream(VMX_INSTANCE* instance);
