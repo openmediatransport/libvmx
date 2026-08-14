@@ -25,6 +25,7 @@
 #pragma once
 #include "vmxcodec.h"
 #include <math.h>
+#include <stdlib.h>
 
 #define VMX_ALIGNMENT (64)
 #define VMX_BITSSIZE (64)
