@@ -97,8 +97,8 @@ void VMX_ResetData(VMX_SLICE_DATA* s)
 	s->StreamPos = s->Stream;
 	s->BitsLeft = VMX_BITSSIZE;
 	s->Temp = 0;
-	buffer_t* si = (buffer_t*)s->StreamPos;
-	s->TempRead = VMX_BUFFERSWAP(*si);
+	memcpy(&s->TempRead, s->StreamPos, sizeof(buffer_t));
+	s->TempRead = VMX_BUFFERSWAP(s->TempRead);
 }
 
 void VMX_ResetStream(VMX_INSTANCE* instance)
