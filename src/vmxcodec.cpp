@@ -1252,7 +1252,7 @@ VMX_API int VMX_SaveTo(VMX_INSTANCE* instance, BYTE* dst, int maxLen)
 		b[2] = slicecount;
 		b += 3;
 	}
-	int len = 0;
+	uint32_t len = 0;
 	for (int i = 0; i < slicecount; i++)
 	{
 		VMX_SLICE_DATA d = instance->Slices[i]->DC;
