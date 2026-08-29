@@ -622,7 +622,7 @@ if (termsToDecode > 0 && termsToDecode < 64) { \
 		zeroLut = GolombZeroCodeLut[nz]; \
 		pos += nz; \
 		data.BitsLeft -= zeroLut.length; \
-		data.Temp |= (zeroLut.value << data.BitsLeft); \
+		data.Temp |= (zeroLut.value << (data.BitsLeft & 63)); \
 }
 
 #define EncodeValue(data, input) { \
