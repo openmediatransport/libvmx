@@ -535,7 +535,7 @@ VMX_API VMX_ERR VMX_LoadFrom(VMX_INSTANCE* instance, BYTE* data, int dataLen)
 			{
 				VMX_SLICE_DATA d = instance->Slices[i]->DC;
 				CHECKBUFF(4);
-				len = *(uint32_t*)b;
+				memcpy(&len, b, sizeof(uint32_t));
 				b += 4;
 				CHECKBUFF(len);
 				if (len > d.MaxStreamLength) return VMX_ERR_BUFFER_OVERFLOW;
@@ -550,7 +550,7 @@ VMX_API VMX_ERR VMX_LoadFrom(VMX_INSTANCE* instance, BYTE* data, int dataLen)
 				{
 					VMX_SLICE_DATA d = instance->Slices[i]->AC;
 					CHECKBUFF(4);
-					len = *(uint32_t*)b;
+					memcpy(&len, b, sizeof(uint32_t));
 					b += 4;
 					CHECKBUFF(len);
 					if (len > d.MaxStreamLength) return VMX_ERR_BUFFER_OVERFLOW;
@@ -1252,13 +1252,13 @@ VMX_API int VMX_SaveTo(VMX_INSTANCE* instance, BYTE* dst, int maxLen)
 		b[2] = slicecount;
 		b += 3;
 	}
-	int len = 0;
+	uint32_t len = 0;
 	for (int i = 0; i < slicecount; i++)
 	{
 		VMX_SLICE_DATA d = instance->Slices[i]->DC;
 		len = d.StreamPos - d.Stream;
 		CHECKBUFF_SAVE(len + 4);
-		*(uint32_t*)b = len;
+		memcpy(b, &len, sizeof(uint32_t));
 		b += 4;
 		memcpy(b, d.Stream, len);
 		b += len;
@@ -1268,7 +1268,7 @@ VMX_API int VMX_SaveTo(VMX_INSTANCE* instance, BYTE* dst, int maxLen)
 		VMX_SLICE_DATA d = instance->Slices[i]->AC;
 		len = d.StreamPos - d.Stream;
 		CHECKBUFF_SAVE(len + 4);
-		*(uint32_t*)b = len;
+		memcpy(b, &len, sizeof(uint32_t));
 		b += 4;
 		memcpy(b, d.Stream, len);
 		b += len;
