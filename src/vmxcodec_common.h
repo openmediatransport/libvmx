@@ -450,8 +450,8 @@ __declspec(align(16)) static const GolombLookup GolombLookupLut[] = {
 	{ \
 		data.BitsLeft = VMX_BITSSIZE; \
 		data.StreamPos += 8; \
-		buffer_t * s = (buffer_t *)data.StreamPos; \
-		data.TempRead = VMX_BUFFERSWAP(*s); \
+		memcpy(&data.TempRead, data.StreamPos, sizeof(buffer_t)); \
+		data.TempRead = VMX_BUFFERSWAP(data.TempRead); \
 	} \
 }
 #define GETBIT(data, val) \
@@ -473,8 +473,8 @@ __declspec(align(16)) static const GolombLookup GolombLookupLut[] = {
    { \
 		int n = (VMX_BITSSIZE - data.BitsLeft) >> 3; \
 		data.StreamPos += n; \
-		buffer_t * s = (buffer_t *)data.StreamPos; \
-		data.TempRead = VMX_BUFFERSWAP(*s); \
+		memcpy(&data.TempRead, data.StreamPos, sizeof(buffer_t)); \
+		data.TempRead = VMX_BUFFERSWAP(data.TempRead); \
 		data.BitsLeft += (n<<3); \
    } \
 }
@@ -585,8 +585,8 @@ if (termsToDecode > 0 && termsToDecode < 64) { \
 { \
 	if (data.BitsLeft < 33) { \
 		\
-			buffer_t* s = (buffer_t*)data.StreamPos; \
-			* s = VMX_BUFFERSWAP(data.Temp); \
+			buffer_t value = VMX_BUFFERSWAP(data.Temp); \
+			memcpy(data.StreamPos, &value, sizeof(buffer_t)); \
 			data.Temp <<= 32; \
 			data.StreamPos += 4; \
 			data.BitsLeft += 32; \
@@ -595,8 +595,8 @@ if (termsToDecode > 0 && termsToDecode < 64) { \
 
 #define EmitBitsMax(data) \
 { \
-	buffer_t* s = (buffer_t*)data.StreamPos; \
-	* s = VMX_BUFFERSWAP(data.Temp); \
+	buffer_t value = VMX_BUFFERSWAP(data.Temp); \
+	memcpy(data.StreamPos, &value, sizeof(buffer_t)); \
 	int bytes = (64 - data.BitsLeft) >> 3; \
 	data.Temp <<= (bytes * 8); \
 	data.StreamPos += bytes; \
@@ -622,7 +622,7 @@ if (termsToDecode > 0 && termsToDecode < 64) { \
 		zeroLut = GolombZeroCodeLut[nz]; \
 		pos += nz; \
 		data.BitsLeft -= zeroLut.length; \
-		data.Temp |= (zeroLut.value << data.BitsLeft); \
+		data.Temp |= (zeroLut.value << (data.BitsLeft & 63)); \
 }
 
 #define EncodeValue(data, input) { \
