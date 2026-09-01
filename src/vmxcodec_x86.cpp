@@ -3346,105 +3346,58 @@ static inline void VMX_ConvertBGRABlock(__m128i* mInput, BYTE* pY, BYTE* pU, BYT
 	_mm_storeu_si128((__m128i*) & pA[0], a1);
 }
 
-//Converts a line of 16 pixels into UYVY output
-static inline int VMX_ConvertBGRXBlockUYVYConditional(__m128i* mInput, __m128i* mInputPrev, BYTE* pDst, ShortRGB cY, ShortRGB cU, ShortRGB cV)
+static inline __m128i VMX_CreateBGRXMultiplier(__m128i coefficients, char r, char g, char b)
 {
-	//Input = BGRA,BGRA,BGRA,BGRA x 4
-	__m128i m1 = _mm_loadu_si128(mInput);
-	mInput++;
-	__m128i m2 = _mm_loadu_si128(mInput);
-	mInput++;
-	__m128i m3 = _mm_loadu_si128(mInput);
-	mInput++;
-	__m128i m4 = _mm_loadu_si128(mInput);
-
-	__m128i m1p = _mm_loadu_si128(mInputPrev);
-	mInputPrev++;
-	__m128i m2p = _mm_loadu_si128(mInputPrev);
-	mInputPrev++;
-	__m128i m3p = _mm_loadu_si128(mInputPrev);
-	mInputPrev++;
-	__m128i m4p = _mm_loadu_si128(mInputPrev);
-
-	__m128i cmp1 = _mm_xor_si128(m1, m1p);
-	__m128i cmp2 = _mm_xor_si128(m2, m2p);
-	__m128i cmp3 = _mm_xor_si128(m3, m3p);
-	__m128i cmp4 = _mm_xor_si128(m4, m4p);
-	cmp1 = _mm_or_si128(cmp1, cmp2);
-	cmp2 = _mm_or_si128(cmp3, cmp4);
-	cmp1 = _mm_or_si128(cmp1, cmp2);	
-	int c1 = _mm_testz_si128(cmp1, cmp1); //1 if equal
-	if (c1) return 0;
-
-	__m128i r1 = VMX_CreateRGBVec(m1, m2, 2);
-	__m128i g1 = VMX_CreateRGBVec(m1, m2, 1);
-	__m128i b1 = VMX_CreateRGBVec(m1, m2, 0);
-
-	__m128i r2 = VMX_CreateRGBVec(m3, m4, 2);
-	__m128i g2 = VMX_CreateRGBVec(m3, m4, 1);
-	__m128i b2 = VMX_CreateRGBVec(m3, m4, 0);
-
-	__m128i y1 = VMX_ConvertRGBVecU(r1, g1, b1, cY.R, cY.G, cY.B, 16);
-	__m128i u1 = VMX_ConvertRGBVec(r1, g1, b1, cU.R, cU.G, cU.B, 128);
-	__m128i v1 = VMX_ConvertRGBVec(r1, g1, b1, cV.R, cV.G, cV.B, 128);
-
-	__m128i y2 = VMX_ConvertRGBVecU(r2, g2, b2, cY.R, cY.G, cY.B, 16);
-	__m128i u2 = VMX_ConvertRGBVec(r2, g2, b2, cU.R, cU.G, cU.B, 128);
-	__m128i v2 = VMX_ConvertRGBVec(r2, g2, b2, cV.R, cV.G, cV.B, 128);
-
-	u1 = _mm_hadd_epi16(u1, u2);
-	u1 = _mm_srai_epi16(u1, 1);
-
-	v1 = _mm_hadd_epi16(v1, v2);
-	v1 = _mm_srai_epi16(v1, 1);
-
-	__m128i uv1 = _mm_unpacklo_epi16(u1, v1);
-	__m128i uv2 = _mm_unpackhi_epi16(u1, v1);
-
-	y1 = _mm_slli_si128(y1, 1);
-	y2 = _mm_slli_si128(y2, 1);
-	y1 = _mm_or_si128(y1, uv1);
-	y2 = _mm_or_si128(y2, uv2);
-
-	_mm_storeu_si128((__m128i*) & pDst[0], y1);
-	_mm_storeu_si128((__m128i*) & pDst[16], y2);
-
-	return 1;
+	return _mm_shuffle_epi8(coefficients, _mm_set_epi8(-1, r, g, b, -1, r, g, b, -1, r, g, b, -1, r, g, b));
 }
-
-//Converts a line of 16 pixels into UYVY output
-static inline void VMX_ConvertBGRXBlockUYVY(__m128i* mInput, BYTE * pDst, ShortRGB cY, ShortRGB cU, ShortRGB cV)
+static inline void VMX_CreateBGRXMultipliers(const ShortRGB* colorTables, __m128i& yMul, __m128i& uMul, __m128i& vMul)
 {
-	//Input = BGRA,BGRA,BGRA,BGRA x 4
-	__m128i m1 = _mm_loadu_si128(mInput);
-	mInput++;
-	__m128i m2 = _mm_loadu_si128(mInput);
-	mInput++;
-	__m128i m3 = _mm_loadu_si128(mInput);
-	mInput++;
-	__m128i m4 = _mm_loadu_si128(mInput);
+	__m128i coefficients = _mm_loadu_si128((const __m128i*)colorTables);
+	yMul = VMX_CreateBGRXMultiplier(coefficients, 0, 2, 4);
+	uMul = VMX_CreateBGRXMultiplier(coefficients, 6, 8, 10);
+	//Shift the load so all three V coefficients fit without reading past the table.
+	coefficients = _mm_loadu_si128((const __m128i*)((const BYTE*)colorTables + 2));
+	vMul = VMX_CreateBGRXMultiplier(coefficients, 10, 12, 14);
+}
+static inline __m128i VMX_ConvertBGRXToY(__m128i m1, __m128i m2, __m128i multiplier)
+{
+	//Center pixels around zero for PMADDUBSW's signed byte operand.
+	__m128i signBit = _mm_set1_epi8(-128);
+	m1 = _mm_xor_si128(m1, signBit);
+	m2 = _mm_xor_si128(m2, signBit);
+	m1 = _mm_maddubs_epi16(multiplier, m1);
+	m2 = _mm_maddubs_epi16(multiplier, m2);
+	m1 = _mm_hadd_epi16(m1, m2);
+	//32384 includes 8-bit rounding, the Y offset, and the 128*220 centering correction.
+	m1 = _mm_add_epi16(m1, _mm_set1_epi16(32384));
+	return _mm_srli_epi16(m1, 8);
+}
+static inline __m128i VMX_ConvertBGRXToChromaDelta(__m128i m1, __m128i m2, __m128i multiplier)
+{
+	m1 = _mm_maddubs_epi16(m1, multiplier);
+	m2 = _mm_maddubs_epi16(m2, multiplier);
+	m1 = _mm_hadd_epi16(m1, m2);
+	m1 = _mm_add_epi16(m1, _mm_set1_epi16(128));
+	return _mm_srai_epi16(m1, 8);
+}
+static inline void VMX_ConvertBGRXVectorsUYVY(__m128i m1, __m128i m2, __m128i m3, __m128i m4, BYTE* pDst, __m128i yMul, __m128i uMul, __m128i vMul)
+{
+	__m128i y1 = VMX_ConvertBGRXToY(m1, m2, yMul);
+	__m128i u1 = VMX_ConvertBGRXToChromaDelta(m1, m2, uMul);
+	__m128i v1 = VMX_ConvertBGRXToChromaDelta(m1, m2, vMul);
 
-	__m128i r1 = VMX_CreateRGBVec(m1, m2, 2);
-	__m128i g1 = VMX_CreateRGBVec(m1, m2, 1);
-	__m128i b1 = VMX_CreateRGBVec(m1, m2, 0);
+	__m128i y2 = VMX_ConvertBGRXToY(m3, m4, yMul);
+	__m128i u2 = VMX_ConvertBGRXToChromaDelta(m3, m4, uMul);
+	__m128i v2 = VMX_ConvertBGRXToChromaDelta(m3, m4, vMul);
 
-	__m128i r2 = VMX_CreateRGBVec(m3, m4, 2);
-	__m128i g2 = VMX_CreateRGBVec(m3, m4, 1);
-	__m128i b2 = VMX_CreateRGBVec(m3, m4, 0);
-
-	__m128i y1 = VMX_ConvertRGBVecU(r1, g1, b1, cY.R, cY.G, cY.B, 16);
-	__m128i u1 = VMX_ConvertRGBVec(r1, g1, b1, cU.R, cU.G, cU.B, 128);
-	__m128i v1 = VMX_ConvertRGBVec(r1, g1, b1, cV.R, cV.G, cV.B, 128);
-
-	__m128i y2 = VMX_ConvertRGBVecU(r2, g2, b2, cY.R, cY.G, cY.B, 16);
-	__m128i u2 = VMX_ConvertRGBVec(r2, g2, b2, cU.R, cU.G, cU.B, 128);
-	__m128i v2 = VMX_ConvertRGBVec(r2, g2, b2, cV.R, cV.G, cV.B, 128);
-
+	//Preserve the original per-pixel rounding before averaging each chroma pair.
 	u1 = _mm_hadd_epi16(u1, u2);
 	u1 = _mm_srai_epi16(u1, 1);
+	u1 = _mm_add_epi16(u1, _mm_set1_epi16(128));
 
 	v1 = _mm_hadd_epi16(v1, v2);
 	v1 = _mm_srai_epi16(v1, 1);
+	v1 = _mm_add_epi16(v1, _mm_set1_epi16(128));
 
 	__m128i uv1 = _mm_unpacklo_epi16(u1, v1);
 	__m128i uv2 = _mm_unpackhi_epi16(u1, v1);
@@ -3456,22 +3409,144 @@ static inline void VMX_ConvertBGRXBlockUYVY(__m128i* mInput, BYTE * pDst, ShortR
 
 	_mm_storeu_si128((__m128i*) & pDst[0], y1);
 	_mm_storeu_si128((__m128i*) & pDst[16], y2);
+}
+static inline void VMX_ConvertBGRXBlockUYVY(__m128i* mInput, BYTE* pDst, __m128i yMul, __m128i uMul, __m128i vMul)
+{
+	__m128i m1 = _mm_loadu_si128(mInput);
+	__m128i m2 = _mm_loadu_si128(mInput + 1);
+	__m128i m3 = _mm_loadu_si128(mInput + 2);
+	__m128i m4 = _mm_loadu_si128(mInput + 3);
+	VMX_ConvertBGRXVectorsUYVY(m1, m2, m3, m4, pDst, yMul, uMul, vMul);
+}
+static inline int VMX_ConvertBGRXBlockUYVYConditional(__m128i* mInput, __m128i* mInputPrev, BYTE* pDst, __m128i yMul, __m128i uMul, __m128i vMul)
+{
+	__m128i m1 = _mm_loadu_si128(mInput);
+	__m128i m2 = _mm_loadu_si128(mInput + 1);
+	__m128i m3 = _mm_loadu_si128(mInput + 2);
+	__m128i m4 = _mm_loadu_si128(mInput + 3);
+	__m128i cmp1 = _mm_or_si128(_mm_xor_si128(m1, _mm_loadu_si128(mInputPrev)), _mm_xor_si128(m2, _mm_loadu_si128(mInputPrev + 1)));
+	__m128i cmp2 = _mm_or_si128(_mm_xor_si128(m3, _mm_loadu_si128(mInputPrev + 2)), _mm_xor_si128(m4, _mm_loadu_si128(mInputPrev + 3)));
+	cmp1 = _mm_or_si128(cmp1, cmp2);
+	if (!_mm_testz_si128(cmp1, cmp1))
+	{
+		VMX_ConvertBGRXVectorsUYVY(m1, m2, m3, m4, pDst, yMul, uMul, vMul);
+		return 1;
+	}
+	return 0;
+}
+static VMX_NOINLINE void VMX_BGRXToUYVYTailInternal(BYTE* pSrc, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
+{
+	if (sz.width <= 0 || sz.height <= 0)
+	{
+		return;
+	}
+
+	int fullWidth = sz.width & ~15;
+	int tailPixels = sz.width - fullWidth;
+	int tailBytes = tailPixels * 4;
+	if (fullWidth)
+	{
+		VMX_SIZE fullSize = {fullWidth, sz.height};
+		VMX_BGRXToUYVYInternal(pSrc, srcStride, pDst, iStride, fullSize, colorTables);
+	}
+
+	pSrc += fullWidth * 4;
+	pDst += fullWidth * 2;
+	__m128i yMul;
+	__m128i uMul;
+	__m128i vMul;
+	VMX_CreateBGRXMultipliers(colorTables, yMul, uMul, vMul);
+	alignas(16) BYTE srcTail[64];
+	alignas(16) BYTE dstTail[32];
+
+	for (int y = 0; y < sz.height; y++)
+	{
+		memcpy(srcTail, pSrc, tailBytes);
+		//Replicate the last pixel to complete the chroma pair and SIMD block.
+		for (int x = tailBytes; x < 64; x++)
+		{
+			srcTail[x] = srcTail[x - 4];
+		}
+		VMX_ConvertBGRXBlockUYVY((__m128i*)srcTail, dstTail, yMul, uMul, vMul);
+		memcpy(pDst, dstTail, tailPixels * 2);
+		pSrc += srcStride;
+		pDst += iStride;
+	}
+}
+static VMX_NOINLINE int VMX_BGRXToUYVYConditionalTailInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
+{
+	if (sz.width <= 0 || sz.height <= 0)
+	{
+		return 0;
+	}
+
+	int fullWidth = sz.width & ~15;
+	int tailPixels = sz.width - fullWidth;
+	int tailBytes = tailPixels * 4;
+	int changed = 0;
+	if (fullWidth)
+	{
+		VMX_SIZE fullSize = {fullWidth, sz.height};
+		changed = VMX_BGRXToUYVYConditionalInternal(pSrc, pSrcPrev, srcStride, pDst, iStride, fullSize, colorTables);
+	}
+
+	pSrc += fullWidth * 4;
+	pSrcPrev += fullWidth * 4;
+	pDst += fullWidth * 2;
+	__m128i yMul;
+	__m128i uMul;
+	__m128i vMul;
+	VMX_CreateBGRXMultipliers(colorTables, yMul, uMul, vMul);
+	alignas(16) BYTE srcTail[64];
+	alignas(16) BYTE dstTail[32];
+
+	for (int y = 0; y < sz.height; y++)
+	{
+		if (memcmp(pSrc, pSrcPrev, tailBytes) != 0)
+		{
+			memcpy(srcTail, pSrc, tailBytes);
+			//Replicate the last pixel to complete the chroma pair and SIMD block.
+			for (int x = tailBytes; x < 64; x++)
+			{
+				srcTail[x] = srcTail[x - 4];
+			}
+			VMX_ConvertBGRXBlockUYVY((__m128i*)srcTail, dstTail, yMul, uMul, vMul);
+			memcpy(pDst, dstTail, tailPixels * 2);
+			changed = 1;
+		}
+		pSrc += srcStride;
+		pSrcPrev += srcStride;
+		pDst += iStride;
+	}
+	return changed;
 }
 int VMX_BGRXToUYVYConditionalInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
 {
+	if (sz.width & 15)
+	{
+		return VMX_BGRXToUYVYConditionalTailInternal(pSrc, pSrcPrev, srcStride, pDst, iStride, sz, colorTables);
+	}
+
 	__m128i* mInput = (__m128i*)pSrc;
 	__m128i* mInputPrev = (__m128i*)pSrcPrev;
 
 	int width = sz.width;
 	int height = sz.height;
 	int changed = 0;
+	__m128i yMul;
+	__m128i uMul;
+	__m128i vMul;
+	VMX_CreateBGRXMultipliers(colorTables, yMul, uMul, vMul);
 
 	BYTE* pDstUYVY = pDst;
 	for (int y = 0; y < height; y++)
 	{
 		for (int x = 0; x < width; x += 16)
 		{
-			changed += VMX_ConvertBGRXBlockUYVYConditional(mInput, mInputPrev, pDstUYVY, colorTables[0], colorTables[1], colorTables[2]);
+			if (VMX_ConvertBGRXBlockUYVYConditional(mInput, mInputPrev, pDstUYVY, yMul, uMul, vMul))
+			{
+				changed = 1;
+			}
 			mInput += 4;
 			mInputPrev += 4;
 			pDstUYVY += 32;
@@ -3484,21 +3559,30 @@ int VMX_BGRXToUYVYConditionalInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride,
 		pDst += iStride;
 		pDstUYVY = pDst;
 	}
-	if (changed) return 1;
-	return 0;
+	return changed;
 }
 void VMX_BGRXToUYVYInternal(BYTE* pSrc, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
 {
+	if (sz.width & 15)
+	{
+		VMX_BGRXToUYVYTailInternal(pSrc, srcStride, pDst, iStride, sz, colorTables);
+		return;
+	}
+
 	__m128i* mInput = (__m128i*)pSrc;
 	int width = sz.width;
 	int height = sz.height;
+	__m128i yMul;
+	__m128i uMul;
+	__m128i vMul;
+	VMX_CreateBGRXMultipliers(colorTables, yMul, uMul, vMul);
 
 	BYTE* pDstUYVY = pDst;
 	for (int y = 0; y < height; y++)
 	{
 		for (int x = 0; x < width; x += 16)
 		{
-			VMX_ConvertBGRXBlockUYVY(mInput, pDstUYVY, colorTables[0], colorTables[1], colorTables[2]);
+			VMX_ConvertBGRXBlockUYVY(mInput, pDstUYVY, yMul, uMul, vMul);
 			mInput += 4;
 			pDstUYVY += 32;
 		}
@@ -3792,5 +3876,3 @@ float VMX_CalculatePSNR_128(BYTE* pImage1, BYTE* pImage2, int stride, int bytesP
 }
 
 #endif
-
-

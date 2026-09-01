@@ -29,6 +29,13 @@
 
 #define VMX_ALIGNMENT (64)
 #define VMX_BITSSIZE (64)
+#if defined(_MSC_VER)
+#define VMX_NOINLINE __declspec(noinline)
+#elif defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)
+#define VMX_NOINLINE __attribute__((noinline))
+#else
+#define VMX_NOINLINE
+#endif
 #define VMX_ALIGN(val, alignment) \
 { \
 	while (val % alignment) \

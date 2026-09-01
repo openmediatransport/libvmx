@@ -3340,121 +3340,164 @@ static inline void VMX_ConvertBGRABlock(__m128i* mInput, BYTE* pY, BYTE* pU, BYT
 	_mm_storeu_si128((__m128i*) & pA[0], a1);
 }
 
-//Converts a line of 16 pixels into UYVY output
-static inline int VMX_ConvertBGRXBlockUYVYConditional(__m128i* mInput, __m128i* mInputPrev, BYTE* pDst, ShortRGB cY, ShortRGB cU, ShortRGB cV)
+static inline void VMX_ConvertBGRXBlockUYVY(BYTE* pInput, BYTE* pDst, ShortRGB cY, ShortRGB cU, ShortRGB cV)
 {
-	//Input = BGRA,BGRA,BGRA,BGRA x 4
-	__m128i m1 = _mm_loadu_si128(mInput);
-	mInput++;
-	__m128i m2 = _mm_loadu_si128(mInput);
-	mInput++;
-	__m128i m3 = _mm_loadu_si128(mInput);
-	mInput++;
-	__m128i m4 = _mm_loadu_si128(mInput);
+	uint8x16x4_t input = vld4q_u8(pInput);
+	uint8x16_t cYR = vdupq_n_u8(cY.R);
+	uint8x16_t cYG = vdupq_n_u8(cY.G);
+	uint8x16_t cYB = vdupq_n_u8(cY.B);
+	uint16x8_t yLow = vmull_u8(vget_low_u8(input.val[2]), vget_low_u8(cYR));
+	yLow = vmlal_u8(yLow, vget_low_u8(input.val[1]), vget_low_u8(cYG));
+	yLow = vmlal_u8(yLow, vget_low_u8(input.val[0]), vget_low_u8(cYB));
+	uint16x8_t yHigh = vmull_high_u8(input.val[2], cYR);
+	yHigh = vmlal_high_u8(yHigh, input.val[1], cYG);
+	yHigh = vmlal_high_u8(yHigh, input.val[0], cYB);
+	uint8x16_t y = vrshrn_high_n_u16(vrshrn_n_u16(yLow, 8), yHigh, 8);
+	y = vaddq_u8(y, vdupq_n_u8(16));
 
-	__m128i m1p = _mm_loadu_si128(mInputPrev);
-	mInputPrev++;
-	__m128i m2p = _mm_loadu_si128(mInputPrev);
-	mInputPrev++;
-	__m128i m3p = _mm_loadu_si128(mInputPrev);
-	mInputPrev++;
-	__m128i m4p = _mm_loadu_si128(mInputPrev);
+	uint8x16_t cUR = vdupq_n_u8(-cU.R);
+	uint8x16_t cUG = vdupq_n_u8(-cU.G);
+	uint8x16_t cUB = vdupq_n_u8(cU.B);
+	//These bounded unsigned subtracts preserve the signed two's-complement dot product.
+	uint16x8_t uLow = vmull_u8(vget_low_u8(input.val[0]), vget_low_u8(cUB));
+	uLow = vmlsl_u8(uLow, vget_low_u8(input.val[2]), vget_low_u8(cUR));
+	uLow = vmlsl_u8(uLow, vget_low_u8(input.val[1]), vget_low_u8(cUG));
+	uint16x8_t uHigh = vmull_high_u8(input.val[0], cUB);
+	uHigh = vmlsl_high_u8(uHigh, input.val[2], cUR);
+	uHigh = vmlsl_high_u8(uHigh, input.val[1], cUG);
+	uint8x16_t u = vreinterpretq_u8_s8(vrshrn_high_n_s16(vrshrn_n_s16(vreinterpretq_s16_u16(uLow), 8), vreinterpretq_s16_u16(uHigh), 8));
+	u = vaddq_u8(u, vdupq_n_u8(128));
 
-	__m128i cmp1 = _mm_xor_si128(m1, m1p);
-	__m128i cmp2 = _mm_xor_si128(m2, m2p);
-	__m128i cmp3 = _mm_xor_si128(m3, m3p);
-	__m128i cmp4 = _mm_xor_si128(m4, m4p);
-	cmp1 = _mm_or_si128(cmp1, cmp2);
-	cmp2 = _mm_or_si128(cmp3, cmp4);
-	cmp1 = _mm_or_si128(cmp1, cmp2);
-	int c1 = _mm_testz_si128(cmp1, cmp1); //1 if equal
-	if (c1) return 0;
+	uint8x16_t cVR = vdupq_n_u8(cV.R);
+	uint8x16_t cVG = vdupq_n_u8(-cV.G);
+	uint8x16_t cVB = vdupq_n_u8(-cV.B);
+	uint16x8_t vLow = vmull_u8(vget_low_u8(input.val[2]), vget_low_u8(cVR));
+	vLow = vmlsl_u8(vLow, vget_low_u8(input.val[1]), vget_low_u8(cVG));
+	vLow = vmlsl_u8(vLow, vget_low_u8(input.val[0]), vget_low_u8(cVB));
+	uint16x8_t vHigh = vmull_high_u8(input.val[2], cVR);
+	vHigh = vmlsl_high_u8(vHigh, input.val[1], cVG);
+	vHigh = vmlsl_high_u8(vHigh, input.val[0], cVB);
+	uint8x16_t v = vreinterpretq_u8_s8(vrshrn_high_n_s16(vrshrn_n_s16(vreinterpretq_s16_u16(vLow), 8), vreinterpretq_s16_u16(vHigh), 8));
+	v = vaddq_u8(v, vdupq_n_u8(128));
 
-	__m128i r1 = VMX_CreateRGBVec(m1, m2, 2);
-	__m128i g1 = VMX_CreateRGBVec(m1, m2, 1);
-	__m128i b1 = VMX_CreateRGBVec(m1, m2, 0);
-
-	__m128i r2 = VMX_CreateRGBVec(m3, m4, 2);
-	__m128i g2 = VMX_CreateRGBVec(m3, m4, 1);
-	__m128i b2 = VMX_CreateRGBVec(m3, m4, 0);
-
-	__m128i y1 = VMX_ConvertRGBVecU(r1, g1, b1, cY.R, cY.G, cY.B, 16);
-	__m128i u1 = VMX_ConvertRGBVec(r1, g1, b1, cU.R, cU.G, cU.B, 128);
-	__m128i v1 = VMX_ConvertRGBVec(r1, g1, b1, cV.R, cV.G, cV.B, 128);
-
-	__m128i y2 = VMX_ConvertRGBVecU(r2, g2, b2, cY.R, cY.G, cY.B, 16);
-	__m128i u2 = VMX_ConvertRGBVec(r2, g2, b2, cU.R, cU.G, cU.B, 128);
-	__m128i v2 = VMX_ConvertRGBVec(r2, g2, b2, cV.R, cV.G, cV.B, 128);
-
-	u1 = _mm_hadd_epi16(u1, u2);
-	u1 = _mm_srai_epi16(u1, 1);
-
-	v1 = _mm_hadd_epi16(v1, v2);
-	v1 = _mm_srai_epi16(v1, 1);
-
-	__m128i uv1 = _mm_unpacklo_epi16(u1, v1);
-	__m128i uv2 = _mm_unpackhi_epi16(u1, v1);
-
-	y1 = _mm_slli_si128(y1, 1);
-	y2 = _mm_slli_si128(y2, 1);
-	y1 = _mm_or_si128(y1, uv1);
-	y2 = _mm_or_si128(y2, uv2);
-
-	_mm_storeu_si128((__m128i*) & pDst[0], y1);
-	_mm_storeu_si128((__m128i*) & pDst[16], y2);
-
-	return 1;
+	uint16x8_t uPairs = vshrq_n_u16(vpaddlq_u8(u), 1);
+	uint16x8_t vPairs = vshrq_n_u16(vpaddlq_u8(v), 1);
+	uint8x16x2_t output;
+	//Pack U,V pairs before interleaving them with consecutive Y samples.
+	output.val[0] = vreinterpretq_u8_u16(vsliq_n_u16(uPairs, vPairs, 8));
+	output.val[1] = y;
+	vst2q_u8(pDst, output);
 }
-
-//Converts a line of 16 pixels into UYVY output
-static inline void VMX_ConvertBGRXBlockUYVY(__m128i* mInput, BYTE* pDst, ShortRGB cY, ShortRGB cU, ShortRGB cV)
+static inline int VMX_ConvertBGRXBlockUYVYConditional(BYTE* pInput, BYTE* pInputPrev, BYTE* pDst, ShortRGB cY, ShortRGB cU, ShortRGB cV)
 {
-	//Input = BGRA,BGRA,BGRA,BGRA x 4
-	__m128i m1 = _mm_loadu_si128(mInput);
-	mInput++;
-	__m128i m2 = _mm_loadu_si128(mInput);
-	mInput++;
-	__m128i m3 = _mm_loadu_si128(mInput);
-	mInput++;
-	__m128i m4 = _mm_loadu_si128(mInput);
+	uint8x16_t cmp = veorq_u8(vld1q_u8(pInput), vld1q_u8(pInputPrev));
+	cmp = vorrq_u8(cmp, veorq_u8(vld1q_u8(pInput + 16), vld1q_u8(pInputPrev + 16)));
+	cmp = vorrq_u8(cmp, veorq_u8(vld1q_u8(pInput + 32), vld1q_u8(pInputPrev + 32)));
+	cmp = vorrq_u8(cmp, veorq_u8(vld1q_u8(pInput + 48), vld1q_u8(pInputPrev + 48)));
+	uint64x2_t cmp64 = vreinterpretq_u64_u8(cmp);
+	if (vgetq_lane_u64(cmp64, 0) | vgetq_lane_u64(cmp64, 1))
+	{
+		VMX_ConvertBGRXBlockUYVY(pInput, pDst, cY, cU, cV);
+		return 1;
+	}
+	return 0;
+}
+static VMX_NOINLINE void VMX_BGRXToUYVYTailInternal(BYTE* pSrc, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
+{
+	if (sz.width <= 0 || sz.height <= 0)
+	{
+		return;
+	}
 
-	__m128i r1 = VMX_CreateRGBVec(m1, m2, 2);
-	__m128i g1 = VMX_CreateRGBVec(m1, m2, 1);
-	__m128i b1 = VMX_CreateRGBVec(m1, m2, 0);
+	int fullWidth = sz.width & ~15;
+	int tailPixels = sz.width - fullWidth;
+	int tailBytes = tailPixels * 4;
+	if (fullWidth)
+	{
+		VMX_SIZE fullSize = {fullWidth, sz.height};
+		VMX_BGRXToUYVYInternal(pSrc, srcStride, pDst, iStride, fullSize, colorTables);
+	}
 
-	__m128i r2 = VMX_CreateRGBVec(m3, m4, 2);
-	__m128i g2 = VMX_CreateRGBVec(m3, m4, 1);
-	__m128i b2 = VMX_CreateRGBVec(m3, m4, 0);
+	pSrc += fullWidth * 4;
+	pDst += fullWidth * 2;
+	ShortRGB cY = colorTables[0];
+	ShortRGB cU = colorTables[1];
+	ShortRGB cV = colorTables[2];
+	alignas(16) BYTE srcTail[64];
+	alignas(16) BYTE dstTail[32];
 
-	__m128i y1 = VMX_ConvertRGBVecU(r1, g1, b1, cY.R, cY.G, cY.B, 16);
-	__m128i u1 = VMX_ConvertRGBVec(r1, g1, b1, cU.R, cU.G, cU.B, 128);
-	__m128i v1 = VMX_ConvertRGBVec(r1, g1, b1, cV.R, cV.G, cV.B, 128);
+	for (int y = 0; y < sz.height; y++)
+	{
+		memcpy(srcTail, pSrc, tailBytes);
+		//Replicate the last pixel to complete the chroma pair and SIMD block.
+		for (int x = tailBytes; x < 64; x++)
+		{
+			srcTail[x] = srcTail[x - 4];
+		}
+		VMX_ConvertBGRXBlockUYVY(srcTail, dstTail, cY, cU, cV);
+		memcpy(pDst, dstTail, tailPixels * 2);
+		pSrc += srcStride;
+		pDst += iStride;
+	}
+}
+static VMX_NOINLINE int VMX_BGRXToUYVYConditionalTailInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
+{
+	if (sz.width <= 0 || sz.height <= 0)
+	{
+		return 0;
+	}
 
-	__m128i y2 = VMX_ConvertRGBVecU(r2, g2, b2, cY.R, cY.G, cY.B, 16);
-	__m128i u2 = VMX_ConvertRGBVec(r2, g2, b2, cU.R, cU.G, cU.B, 128);
-	__m128i v2 = VMX_ConvertRGBVec(r2, g2, b2, cV.R, cV.G, cV.B, 128);
+	int fullWidth = sz.width & ~15;
+	int tailPixels = sz.width - fullWidth;
+	int tailBytes = tailPixels * 4;
+	int changed = 0;
+	if (fullWidth)
+	{
+		VMX_SIZE fullSize = {fullWidth, sz.height};
+		changed = VMX_BGRXToUYVYConditionalInternal(pSrc, pSrcPrev, srcStride, pDst, iStride, fullSize, colorTables);
+	}
 
-	u1 = _mm_hadd_epi16(u1, u2);
-	u1 = _mm_srai_epi16(u1, 1);
+	pSrc += fullWidth * 4;
+	pSrcPrev += fullWidth * 4;
+	pDst += fullWidth * 2;
+	ShortRGB cY = colorTables[0];
+	ShortRGB cU = colorTables[1];
+	ShortRGB cV = colorTables[2];
+	alignas(16) BYTE srcTail[64];
+	alignas(16) BYTE dstTail[32];
 
-	v1 = _mm_hadd_epi16(v1, v2);
-	v1 = _mm_srai_epi16(v1, 1);
-
-	__m128i uv1 = _mm_unpacklo_epi16(u1, v1);
-	__m128i uv2 = _mm_unpackhi_epi16(u1, v1);
-
-	y1 = _mm_slli_si128(y1, 1);
-	y2 = _mm_slli_si128(y2, 1);
-	y1 = _mm_or_si128(y1, uv1);
-	y2 = _mm_or_si128(y2, uv2);
-
-	_mm_storeu_si128((__m128i*) & pDst[0], y1);
-	_mm_storeu_si128((__m128i*) & pDst[16], y2);
+	for (int y = 0; y < sz.height; y++)
+	{
+		if (memcmp(pSrc, pSrcPrev, tailBytes) != 0)
+		{
+			memcpy(srcTail, pSrc, tailBytes);
+			//Replicate the last pixel to complete the chroma pair and SIMD block.
+			for (int x = tailBytes; x < 64; x++)
+			{
+				srcTail[x] = srcTail[x - 4];
+			}
+			VMX_ConvertBGRXBlockUYVY(srcTail, dstTail, cY, cU, cV);
+			memcpy(pDst, dstTail, tailPixels * 2);
+			changed = 1;
+		}
+		pSrc += srcStride;
+		pSrcPrev += srcStride;
+		pDst += iStride;
+	}
+	return changed;
 }
 int VMX_BGRXToUYVYConditionalInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
 {
-	__m128i* mInput = (__m128i*)pSrc;
-	__m128i* mInputPrev = (__m128i*)pSrcPrev;
+	if (sz.width & 15)
+	{
+		return VMX_BGRXToUYVYConditionalTailInternal(pSrc, pSrcPrev, srcStride, pDst, iStride, sz, colorTables);
+	}
+
+	BYTE* pInput = pSrc;
+	BYTE* pInputPrev = pSrcPrev;
+	ShortRGB cY = colorTables[0];
+	ShortRGB cU = colorTables[1];
+	ShortRGB cV = colorTables[2];
 
 	int width = sz.width;
 	int height = sz.height;
@@ -3465,25 +3508,36 @@ int VMX_BGRXToUYVYConditionalInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride,
 	{
 		for (int x = 0; x < width; x += 16)
 		{
-			changed += VMX_ConvertBGRXBlockUYVYConditional(mInput, mInputPrev, pDstUYVY, colorTables[0], colorTables[1], colorTables[2]);
-			mInput += 4;
-			mInputPrev += 4;
+			if (VMX_ConvertBGRXBlockUYVYConditional(pInput, pInputPrev, pDstUYVY, cY, cU, cV))
+			{
+				changed = 1;
+			}
+			pInput += 64;
+			pInputPrev += 64;
 			pDstUYVY += 32;
 		}
 		pSrc += srcStride;
 		pSrcPrev += srcStride;
-		mInput = (__m128i*)pSrc;
-		mInputPrev = (__m128i*)pSrcPrev;
+		pInput = pSrc;
+		pInputPrev = pSrcPrev;
 
 		pDst += iStride;
 		pDstUYVY = pDst;
 	}
-	if (changed) return 1;
-	return 0;
+	return changed;
 }
 void VMX_BGRXToUYVYInternal(BYTE* pSrc, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
 {
-	__m128i* mInput = (__m128i*)pSrc;
+	if (sz.width & 15)
+	{
+		VMX_BGRXToUYVYTailInternal(pSrc, srcStride, pDst, iStride, sz, colorTables);
+		return;
+	}
+
+	BYTE* pInput = pSrc;
+	ShortRGB cY = colorTables[0];
+	ShortRGB cU = colorTables[1];
+	ShortRGB cV = colorTables[2];
 	int width = sz.width;
 	int height = sz.height;
 
@@ -3492,12 +3546,12 @@ void VMX_BGRXToUYVYInternal(BYTE* pSrc, int srcStride, BYTE* pDst, int iStride, 
 	{
 		for (int x = 0; x < width; x += 16)
 		{
-			VMX_ConvertBGRXBlockUYVY(mInput, pDstUYVY, colorTables[0], colorTables[1], colorTables[2]);
-			mInput += 4;
+			VMX_ConvertBGRXBlockUYVY(pInput, pDstUYVY, cY, cU, cV);
+			pInput += 64;
 			pDstUYVY += 32;
 		}
 		pSrc += srcStride;
-		mInput = (__m128i*)pSrc;
+		pInput = pSrc;
 
 		pDst += iStride;
 		pDstUYVY = pDst;
