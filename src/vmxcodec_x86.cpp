@@ -3457,8 +3457,87 @@ static inline void VMX_ConvertBGRXBlockUYVY(__m128i* mInput, BYTE * pDst, ShortR
 	_mm_storeu_si128((__m128i*) & pDst[0], y1);
 	_mm_storeu_si128((__m128i*) & pDst[16], y2);
 }
+//Keep the tail path out of the aligned-width kernel.
+static VMX_NOINLINE void VMX_BGRXToUYVYTailInternal(BYTE* pSrc, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
+{
+	int fullWidth = sz.width & ~15;
+	int tailPixels = sz.width - fullWidth;
+	int tailBytes = tailPixels * 4;
+	alignas(16) BYTE srcTail[64];
+	alignas(16) BYTE dstTail[32];
+
+	for (int y = 0; y < sz.height; y++)
+	{
+		BYTE* pInput = pSrc;
+		BYTE* pDstUYVY = pDst;
+		for (int x = 0; x < fullWidth; x += 16)
+		{
+			VMX_ConvertBGRXBlockUYVY((__m128i*)pInput, pDstUYVY, colorTables[0], colorTables[1], colorTables[2]);
+			pInput += 64;
+			pDstUYVY += 32;
+		}
+		memcpy(srcTail, pInput, tailBytes);
+		//Replicate the last pixel to complete the chroma pair and SIMD block.
+		for (int x = tailBytes; x < 64; x++)
+		{
+			srcTail[x] = srcTail[x - 4];
+		}
+		VMX_ConvertBGRXBlockUYVY((__m128i*)srcTail, dstTail, colorTables[0], colorTables[1], colorTables[2]);
+		memcpy(pDstUYVY, dstTail, tailPixels * 2);
+		pSrc += srcStride;
+		pDst += iStride;
+	}
+}
+static VMX_NOINLINE int VMX_BGRXToUYVYConditionalTailInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
+{
+	int fullWidth = sz.width & ~15;
+	int tailPixels = sz.width - fullWidth;
+	int tailBytes = tailPixels * 4;
+	int changed = 0;
+	alignas(16) BYTE srcTail[64];
+	alignas(16) BYTE dstTail[32];
+
+	for (int y = 0; y < sz.height; y++)
+	{
+		BYTE* pInput = pSrc;
+		BYTE* pInputPrev = pSrcPrev;
+		BYTE* pDstUYVY = pDst;
+		for (int x = 0; x < fullWidth; x += 16)
+		{
+			changed += VMX_ConvertBGRXBlockUYVYConditional((__m128i*)pInput, (__m128i*)pInputPrev, pDstUYVY, colorTables[0], colorTables[1], colorTables[2]);
+			pInput += 64;
+			pInputPrev += 64;
+			pDstUYVY += 32;
+		}
+		if (memcmp(pInput, pInputPrev, tailBytes) != 0)
+		{
+			memcpy(srcTail, pInput, tailBytes);
+			//Replicate the last pixel to complete the chroma pair and SIMD block.
+			for (int x = tailBytes; x < 64; x++)
+			{
+				srcTail[x] = srcTail[x - 4];
+			}
+			VMX_ConvertBGRXBlockUYVY((__m128i*)srcTail, dstTail, colorTables[0], colorTables[1], colorTables[2]);
+			memcpy(pDstUYVY, dstTail, tailPixels * 2);
+			changed = 1;
+		}
+		pSrc += srcStride;
+		pSrcPrev += srcStride;
+		pDst += iStride;
+	}
+	return changed != 0;
+}
 int VMX_BGRXToUYVYConditionalInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
 {
+	if (sz.width <= 0 || sz.height <= 0)
+	{
+		return 0;
+	}
+	if (sz.width & 15)
+	{
+		return VMX_BGRXToUYVYConditionalTailInternal(pSrc, pSrcPrev, srcStride, pDst, iStride, sz, colorTables);
+	}
+
 	__m128i* mInput = (__m128i*)pSrc;
 	__m128i* mInputPrev = (__m128i*)pSrcPrev;
 
@@ -3489,6 +3568,16 @@ int VMX_BGRXToUYVYConditionalInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride,
 }
 void VMX_BGRXToUYVYInternal(BYTE* pSrc, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
 {
+	if (sz.width <= 0 || sz.height <= 0)
+	{
+		return;
+	}
+	if (sz.width & 15)
+	{
+		VMX_BGRXToUYVYTailInternal(pSrc, srcStride, pDst, iStride, sz, colorTables);
+		return;
+	}
+
 	__m128i* mInput = (__m128i*)pSrc;
 	int width = sz.width;
 	int height = sz.height;
