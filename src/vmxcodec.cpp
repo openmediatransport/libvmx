@@ -401,10 +401,29 @@ VMX_API VMX_INSTANCE* VMX_Create(VMX_SIZE dimensions, VMX_PROFILE profile, VMX_C
 	instance->Planes[2].Data = (BYTE*)_mm_malloc(planeLen, VMX_ALIGNMENT);
 	instance->Planes[3].Data = (BYTE*)_mm_malloc(planeLen, VMX_ALIGNMENT);
 
-	memset(instance->Planes[0].Data, 0, planeLen);
-	memset(instance->Planes[1].Data, 128, planeLen);
-	memset(instance->Planes[2].Data, 128, planeLen);
-	memset(instance->Planes[3].Data, 255, planeLen);
+	//Deterministic initial planes (black, neutral chroma, opaque alpha), filled from the
+	//task threads: 4 x 66 MB at 8K, and a single-threaded fill of fresh memory is mostly
+	//page faults (~70 ms at 8K, enough to drop frames on a new connection).
+	{
+		const int fillThreads = instance->Threads < 4 ? 4 : instance->Threads;
+		const int chunk = (planeLen + fillThreads - 1) / fillThreads;
+		const BYTE fillValues[4] = { 0, 128, 128, 255 };
+		for (int t = 0; t < instance->Threads; t++)
+		{
+			instance->Tasks->tasks[t]->Push([instance, t, fillThreads, chunk, planeLen, fillValues] {
+				for (int p = 0; p < 4; p++)
+				{
+					for (int c = t; c < fillThreads; c += instance->Threads)
+					{
+						const int start = c * chunk;
+						const int len = start + chunk > planeLen ? planeLen - start : chunk;
+						if (len > 0) memset(instance->Planes[p].Data + start, fillValues[p], len);
+					}
+				}
+			});
+		}
+		for (int t = 0; t < instance->Threads; t++) instance->Tasks->tasks[t]->Join();
+	}
 
 	instance->Planes[0].DataLowerPreview = instance->Planes[0].Data + ((instance->Planes[0].Stride) * (instance->AlignedHeight >> 4));
 	instance->Planes[1].DataLowerPreview = instance->Planes[1].Data + ((instance->Planes[1].Stride) * (instance->AlignedHeight >> 4));
@@ -433,8 +452,13 @@ VMX_API VMX_INSTANCE* VMX_Create(VMX_SIZE dimensions, VMX_PROFILE profile, VMX_C
 		instance->Slices[i]->DC.StreamLength = 0;
 		instance->Slices[i]->AC.MaxStreamLength = acLen - protectionBytes;
 		instance->Slices[i]->DC.MaxStreamLength = dcLen;
-		memset(instance->Slices[i]->DC.Stream, 0xFF, dcLen);
-		memset(instance->Slices[i]->AC.Stream, 0xFF, acLen);
+		//Only the tail past MaxStreamLength needs the 0xFF guard: VMX_LoadFrom never writes
+		//there, so it outlives every frame, and a decoder running off the end of a malformed
+		//stream reaches it regardless of what precedes it. Filling whole streams was ~200 MB
+		//at 8K. (DC reserves no tail, so its guard can be overwritten by a full-length stream,
+		//as before.)
+		memset(instance->Slices[i]->AC.Stream + acLen - protectionBytes, 0xFF, protectionBytes);
+		memset(instance->Slices[i]->DC.Stream + (dcLen > protectionBytes ? dcLen - protectionBytes : 0), 0xFF, dcLen > protectionBytes ? protectionBytes : dcLen);
 
 		instance->Slices[i]->PixelSize = { dimensions.width, VMX_SLICE_HEIGHT };
 		if (i == instance->SliceCount - 1) {
