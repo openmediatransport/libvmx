@@ -3466,15 +3466,30 @@ int VMX_BGRXToUYVYConditionalInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride,
 	int height = sz.height;
 	int changed = 0;
 
+	__m128i srcScratch[4]{};
+	__m128i prevScratch[4]{};
+	BYTE dstScratch[32]{};
+	int truncWidth = (width & ~15);
+	int tailWidth = width - truncWidth;
+
 	BYTE* pDstUYVY = pDst;
 	for (int y = 0; y < height; y++)
 	{
-		for (int x = 0; x < width; x += 16)
+		for (int x = 0; x < truncWidth; x += 16)
 		{
 			changed += VMX_ConvertBGRXBlockUYVYConditional(mInput, mInputPrev, pDstUYVY, colorTables[0], colorTables[1], colorTables[2]);
 			mInput += 4;
 			mInputPrev += 4;
 			pDstUYVY += 32;
+		}
+		if (tailWidth) {
+			memcpy(srcScratch, mInput, tailWidth << 2);
+			memcpy(prevScratch, mInputPrev, tailWidth << 2);
+			int tailChanged = VMX_ConvertBGRXBlockUYVYConditional(srcScratch, prevScratch, dstScratch, colorTables[0], colorTables[1], colorTables[2]);
+			if (tailChanged) {
+				memcpy(pDstUYVY, dstScratch, tailWidth << 1);
+				changed += tailChanged;
+			}
 		}
 		pSrc += srcStride;
 		pSrcPrev += srcStride;
@@ -3493,14 +3508,24 @@ void VMX_BGRXToUYVYInternal(BYTE* pSrc, int srcStride, BYTE* pDst, int iStride, 
 	int width = sz.width;
 	int height = sz.height;
 
+	__m128i srcScratch[4]{};
+	BYTE dstScratch[32]{};
+	int truncWidth = (width & ~15);
+	int tailWidth = width - truncWidth;
+
 	BYTE* pDstUYVY = pDst;
 	for (int y = 0; y < height; y++)
 	{
-		for (int x = 0; x < width; x += 16)
+		for (int x = 0; x < truncWidth; x += 16)
 		{
 			VMX_ConvertBGRXBlockUYVY(mInput, pDstUYVY, colorTables[0], colorTables[1], colorTables[2]);
 			mInput += 4;
 			pDstUYVY += 32;
+		}
+		if (tailWidth) {
+			memcpy(srcScratch, mInput, tailWidth << 2);
+			VMX_ConvertBGRXBlockUYVY(srcScratch, dstScratch, colorTables[0], colorTables[1], colorTables[2]);
+			memcpy(pDstUYVY, dstScratch, tailWidth << 1);
 		}
 		pSrc += srcStride;
 		mInput = (__m128i*)pSrc;

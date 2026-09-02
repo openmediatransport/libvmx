@@ -512,10 +512,13 @@ VMX_API int VMX_SaveTo(VMX_INSTANCE* instance, BYTE* dst, int maxLen);
 VMX_API int VMX_GetEncodedPreviewLength(VMX_INSTANCE* instance);
 
 /**
-* Helper function to convert a BGRX image to UYVY. The destination buffer must be 64byte aligned.
+* Helper function to convert a BGRX image to UYVY. 
+* 
+* The width must be an even number.
+* 
 * @param[in] pSrc The source pixels in BGRA format. Alpha is ignored.
 * @param[in] srcStride The stride in bytes of each row of source pixels.
-* @param[in] pDst The destination buffer. This must be 64byte aligned.
+* @param[in] pDst The destination buffer.
 * @param[in] dstStride The stride in bytes of each row of destination pixels.
 * @param[in] size The dimensions of the pixels.
 */
@@ -528,12 +531,12 @@ VMX_API void VMX_BGRXToUYVY(BYTE* pSrc, int srcStride, BYTE* pDst, int dstStride
 * 
 * pDst will be left untouched if no pixels have changed, and no conversion will occur.
 * 
-* The destination buffer must be 64byte aligned.
+* The width must be an even number.
 * 
 * @param[in] pSrc The source pixels in BGRA format. Alpha is ignored.
 * @param[in] pSrcPrev The previous source pixels in BGRA format. Alpha is ignored.
 * @param[in] srcStride The stride in bytes of each row of source pixels.
-* @param[in] pDst The destination buffer. This must be 64byte aligned.
+* @param[in] pDst The destination buffer.
 * @param[in] dstStride The stride in bytes of each row of destination pixels.
 * @param[in] size The dimensions of the pixels.
 * @return Returns 1 if any pixels have changed, 0 otherwise.
