@@ -1192,14 +1192,14 @@ VMX_API int VMX_GetEncodedPreviewLength(VMX_INSTANCE* instance)
 }
 VMX_API void VMX_BGRXToUYVY(BYTE* pSrc, int srcStride, BYTE* pDst, int dstStride, VMX_SIZE size)
 {
-	const ShortRGB* colorTable = RGB_YUV_709;
-	if (size.height < 720) colorTable = RGB_YUV_601;
+	const ByteBGRXVec* colorTable = RGB_YUV_709_VEC;
+	if (size.height < 720) colorTable = RGB_YUV_601_VEC;
 	VMX_BGRXToUYVYInternal(pSrc, srcStride, pDst, dstStride, size, colorTable);	
 }
 VMX_API int VMX_BGRXToUYVYConditional(BYTE* pSrc, BYTE* pSrcPrev, int srcStride, BYTE* pDst, int dstStride, VMX_SIZE size)
 {
-	const ShortRGB* colorTable = RGB_YUV_709;
-	if (size.height < 720) colorTable = RGB_YUV_601;
+	const ByteBGRXVec* colorTable = RGB_YUV_709_VEC;
+	if (size.height < 720) colorTable = RGB_YUV_601_VEC;
 	return VMX_BGRXToUYVYConditionalInternal(pSrc, pSrcPrev, srcStride, pDst, dstStride, size, colorTable);
 }
 VMX_API int VMX_GetThreads(VMX_INSTANCE* instance)

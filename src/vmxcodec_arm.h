@@ -104,8 +104,8 @@ void VMX_BGRAToYUV4224(BYTE* pSrc, int srcStride, BYTE* pDstY, int iStrideY, BYT
 void VMX_DecodePlaneInternal(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s);
 void VMX_DecodePlaneInternal16(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s);
 void VMX_DecodePlanePreviewInternal(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VMX_SLICE_SET* s);
-void VMX_BGRXToUYVYInternal(BYTE* pSrc, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables);
-int VMX_BGRXToUYVYConditionalInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables);
+void VMX_BGRXToUYVYInternal(BYTE* pSrc, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ByteBGRXVec* colorTables);
+int VMX_BGRXToUYVYConditionalInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ByteBGRXVec* colorTables);
 float VMX_CalculatePSNR_128(BYTE* p1, BYTE* p2, int stride, int bytesPerPixel, VMX_SIZE sz);
 
 #endif

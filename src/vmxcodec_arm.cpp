@@ -26,6 +26,7 @@
 #include "vmxcodec_arm.h"
 #if defined(ARM64)
 
+
 #define Get2MagSignV(input) { \
 	__m128i b = _mm_adds_epi16(input, input);  \
 	__m128i c = _mm_srai_epi16(input, 15);  \
@@ -3249,6 +3250,26 @@ void VMX_BROADCAST_DC_8X8_128_16(short src, BYTE* dst, int stride, short addVal)
 	dst += stride;
 }
 
+static inline __m128i VMX_ConvertRGBVecY(__m128i m1, __m128i m2, __m128i mulVec) {
+	__m128i signBit = _mm_set1_epi8(-128);
+	m1 = _mm_xor_si128(m1, signBit);
+	m2 = _mm_xor_si128(m2, signBit);
+	m1 = _mm_maddubs_epi16(mulVec, m1);
+	m2 = _mm_maddubs_epi16(mulVec, m2);
+	m1 = _mm_hadd_epi16(m1, m2);
+	//32384 includes 8-bit rounding, the Y offset, and the 128*220 centering correction.
+	m1 = _mm_add_epi16(m1, _mm_set1_epi16(32384));
+	return _mm_srli_epi16(m1, 8);
+}
+
+static inline __m128i VMX_ConvertRGBVecUV(__m128i m1, __m128i m2, __m128i mulVec) {
+	m1 = _mm_maddubs_epi16(m1, mulVec);
+	m2 = _mm_maddubs_epi16(m2, mulVec);
+	m1 = _mm_hadd_epi16(m1, m2);
+	m1 = _mm_add_epi16(m1, _mm_set1_epi16(128));
+	return _mm_srai_epi16(m1, 8);
+}
+
 //Convert 8 16Bit pixels into 8 16Bit U or V values
 static inline __m128i VMX_ConvertRGBVec(__m128i r, __m128i g, __m128i b, short mulR, short mulG, short mulB, short add)
 {
@@ -3341,7 +3362,7 @@ static inline void VMX_ConvertBGRABlock(__m128i* mInput, BYTE* pY, BYTE* pU, BYT
 }
 
 //Converts a line of 16 pixels into UYVY output
-static inline int VMX_ConvertBGRXBlockUYVYConditional(__m128i* mInput, __m128i* mInputPrev, BYTE* pDst, ShortRGB cY, ShortRGB cU, ShortRGB cV)
+static inline int VMX_ConvertBGRXBlockUYVYConditional(__m128i* mInput, __m128i* mInputPrev, BYTE* pDst, const ByteBGRXVec cY, const ByteBGRXVec cU, const ByteBGRXVec cV)
 {
 	//Input = BGRA,BGRA,BGRA,BGRA x 4
 	__m128i m1 = _mm_loadu_si128(mInput);
@@ -3370,27 +3391,21 @@ static inline int VMX_ConvertBGRXBlockUYVYConditional(__m128i* mInput, __m128i* 
 	int c1 = _mm_testz_si128(cmp1, cmp1); //1 if equal
 	if (c1) return 0;
 
-	__m128i r1 = VMX_CreateRGBVec(m1, m2, 2);
-	__m128i g1 = VMX_CreateRGBVec(m1, m2, 1);
-	__m128i b1 = VMX_CreateRGBVec(m1, m2, 0);
+	__m128i y1 = VMX_ConvertRGBVecY(m1, m2, *((__m128i*) & cY));
+	__m128i u1 = VMX_ConvertRGBVecUV(m1, m2, *((__m128i*) & cU));
+	__m128i v1 = VMX_ConvertRGBVecUV(m1, m2, *((__m128i*) & cV));
 
-	__m128i r2 = VMX_CreateRGBVec(m3, m4, 2);
-	__m128i g2 = VMX_CreateRGBVec(m3, m4, 1);
-	__m128i b2 = VMX_CreateRGBVec(m3, m4, 0);
-
-	__m128i y1 = VMX_ConvertRGBVecU(r1, g1, b1, cY.R, cY.G, cY.B, 16);
-	__m128i u1 = VMX_ConvertRGBVec(r1, g1, b1, cU.R, cU.G, cU.B, 128);
-	__m128i v1 = VMX_ConvertRGBVec(r1, g1, b1, cV.R, cV.G, cV.B, 128);
-
-	__m128i y2 = VMX_ConvertRGBVecU(r2, g2, b2, cY.R, cY.G, cY.B, 16);
-	__m128i u2 = VMX_ConvertRGBVec(r2, g2, b2, cU.R, cU.G, cU.B, 128);
-	__m128i v2 = VMX_ConvertRGBVec(r2, g2, b2, cV.R, cV.G, cV.B, 128);
+	__m128i y2 = VMX_ConvertRGBVecY(m3, m4, *((__m128i*) & cY));
+	__m128i u2 = VMX_ConvertRGBVecUV(m3, m4, *((__m128i*) & cU));
+	__m128i v2 = VMX_ConvertRGBVecUV(m3, m4, *((__m128i*) & cV));
 
 	u1 = _mm_hadd_epi16(u1, u2);
 	u1 = _mm_srai_epi16(u1, 1);
+	u1 = _mm_add_epi16(u1, _mm_set1_epi16(128));
 
 	v1 = _mm_hadd_epi16(v1, v2);
 	v1 = _mm_srai_epi16(v1, 1);
+	v1 = _mm_add_epi16(v1, _mm_set1_epi16(128));
 
 	__m128i uv1 = _mm_unpacklo_epi16(u1, v1);
 	__m128i uv2 = _mm_unpackhi_epi16(u1, v1);
@@ -3407,7 +3422,7 @@ static inline int VMX_ConvertBGRXBlockUYVYConditional(__m128i* mInput, __m128i* 
 }
 
 //Converts a line of 16 pixels into UYVY output
-static inline void VMX_ConvertBGRXBlockUYVY(__m128i* mInput, BYTE* pDst, ShortRGB cY, ShortRGB cU, ShortRGB cV)
+static inline void VMX_ConvertBGRXBlockUYVY(__m128i* mInput, BYTE* pDst, const ByteBGRXVec cY, const ByteBGRXVec cU, const ByteBGRXVec cV)
 {
 	//Input = BGRA,BGRA,BGRA,BGRA x 4
 	__m128i m1 = _mm_loadu_si128(mInput);
@@ -3418,27 +3433,21 @@ static inline void VMX_ConvertBGRXBlockUYVY(__m128i* mInput, BYTE* pDst, ShortRG
 	mInput++;
 	__m128i m4 = _mm_loadu_si128(mInput);
 
-	__m128i r1 = VMX_CreateRGBVec(m1, m2, 2);
-	__m128i g1 = VMX_CreateRGBVec(m1, m2, 1);
-	__m128i b1 = VMX_CreateRGBVec(m1, m2, 0);
+	__m128i y1 = VMX_ConvertRGBVecY(m1, m2, *((__m128i*) & cY));
+	__m128i u1 = VMX_ConvertRGBVecUV(m1, m2, *((__m128i*) & cU));
+	__m128i v1 = VMX_ConvertRGBVecUV(m1, m2, *((__m128i*) & cV));
 
-	__m128i r2 = VMX_CreateRGBVec(m3, m4, 2);
-	__m128i g2 = VMX_CreateRGBVec(m3, m4, 1);
-	__m128i b2 = VMX_CreateRGBVec(m3, m4, 0);
-
-	__m128i y1 = VMX_ConvertRGBVecU(r1, g1, b1, cY.R, cY.G, cY.B, 16);
-	__m128i u1 = VMX_ConvertRGBVec(r1, g1, b1, cU.R, cU.G, cU.B, 128);
-	__m128i v1 = VMX_ConvertRGBVec(r1, g1, b1, cV.R, cV.G, cV.B, 128);
-
-	__m128i y2 = VMX_ConvertRGBVecU(r2, g2, b2, cY.R, cY.G, cY.B, 16);
-	__m128i u2 = VMX_ConvertRGBVec(r2, g2, b2, cU.R, cU.G, cU.B, 128);
-	__m128i v2 = VMX_ConvertRGBVec(r2, g2, b2, cV.R, cV.G, cV.B, 128);
+	__m128i y2 = VMX_ConvertRGBVecY(m3, m4, *((__m128i*) & cY));
+	__m128i u2 = VMX_ConvertRGBVecUV(m3, m4, *((__m128i*) & cU));
+	__m128i v2 = VMX_ConvertRGBVecUV(m3, m4, *((__m128i*) & cV));
 
 	u1 = _mm_hadd_epi16(u1, u2);
 	u1 = _mm_srai_epi16(u1, 1);
+	u1 = _mm_add_epi16(u1, _mm_set1_epi16(128));
 
 	v1 = _mm_hadd_epi16(v1, v2);
 	v1 = _mm_srai_epi16(v1, 1);
+	v1 = _mm_add_epi16(v1, _mm_set1_epi16(128));
 
 	__m128i uv1 = _mm_unpacklo_epi16(u1, v1);
 	__m128i uv2 = _mm_unpackhi_epi16(u1, v1);
@@ -3451,7 +3460,7 @@ static inline void VMX_ConvertBGRXBlockUYVY(__m128i* mInput, BYTE* pDst, ShortRG
 	_mm_storeu_si128((__m128i*) & pDst[0], y1);
 	_mm_storeu_si128((__m128i*) & pDst[16], y2);
 }
-int VMX_BGRXToUYVYConditionalInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
+int VMX_BGRXToUYVYConditionalInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ByteBGRXVec* colorTables)
 {
 	__m128i* mInput = (__m128i*)pSrc;
 	__m128i* mInputPrev = (__m128i*)pSrcPrev;
@@ -3496,7 +3505,7 @@ int VMX_BGRXToUYVYConditionalInternal(BYTE* pSrc, BYTE* pSrcPrev, int srcStride,
 	if (changed) return 1;
 	return 0;
 }
-void VMX_BGRXToUYVYInternal(BYTE* pSrc, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ShortRGB* colorTables)
+void VMX_BGRXToUYVYInternal(BYTE* pSrc, int srcStride, BYTE* pDst, int iStride, VMX_SIZE sz, const ByteBGRXVec* colorTables)
 {
 	__m128i* mInput = (__m128i*)pSrc;
 	int width = sz.width;
