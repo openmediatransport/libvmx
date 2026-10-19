@@ -1940,7 +1940,7 @@ void VMX_YUY2ToPlanar(BYTE* src, int srcStride, BYTE* ydst, int ystride, BYTE* u
 		pU = udst;
 		pV = vdst;
 	}
-	VMX_FreeAlignedStrideBuffer(alignedSrc, alignedStride, srcStride);
+	VMX_FreeAlignedStrideBuffer(alignedSrc, alignedStride, src);
 }
 
 
@@ -2015,7 +2015,7 @@ void VMX_UYVYToPlanar(BYTE* src, int srcStride, BYTE* ydst, int ystride, BYTE* u
 		pU = udst;
 		pV = vdst;
 	}
-	VMX_FreeAlignedStrideBuffer(alignedSrc, alignedStride, srcStride);
+	VMX_FreeAlignedStrideBuffer(alignedSrc, alignedStride, src);
 }
 
 
@@ -2069,7 +2069,7 @@ void VMX_P216ToPlanar(BYTE* srcY, int srcStrideY, BYTE* srcUV, int srcStrideUV, 
 		pU = udst;
 		pV = vdst;
 	}
-	VMX_FreeAlignedStrideBuffer(alignedSrc, alignedStride, srcStrideUV);
+	VMX_FreeAlignedStrideBuffer(alignedSrc, alignedStride, srcUV);
 }
 
 
@@ -2225,7 +2225,7 @@ void VMX_NV12ToPlanar(BYTE* srcY, int srcStrideY, BYTE* srcUV, int srcStrideUV, 
 		pV = vdst;
 	}
 
-	VMX_FreeAlignedStrideBuffer(alignedSrc, alignedStride, srcStrideUV);
+	VMX_FreeAlignedStrideBuffer(alignedSrc, alignedStride, srcUV);
 }
 
 
@@ -3583,7 +3583,7 @@ void VMX_BGRAToYUV4224(BYTE* pSrc, int srcStride, BYTE* pDstY, int iStrideY, BYT
 		pV = pDstV;
 		pA = pDstA;
 	}
-	VMX_FreeAlignedStrideBuffer(alignedSrc, alignedStride, srcStride);
+	VMX_FreeAlignedStrideBuffer(alignedSrc, alignedStride, pSrc);
 }
 
 void VMX_YUV4224ToBGRA(BYTE* pSrcY, int iStrideY, BYTE* pSrcU, int iStrideU, BYTE* pSrcV, int iStrideV, BYTE* pSrcA, int iStrideA, BYTE* pDst, int dstStride, VMX_SIZE sz, const short* colorTable)

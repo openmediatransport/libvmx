@@ -666,7 +666,8 @@ inline void VMX_CreateAlignedStrideBuffer(BYTE* src, int srcStride, VMX_SIZE src
 }
 inline void VMX_CopyFromAlignedStrideBufferAndFree(BYTE* aligned, int alignedStride, BYTE* dstBuffer, int dstStride, VMX_SIZE dstSize, int bytesPerPixel)
 {
-	if (alignedStride != dstStride)
+	// copy+free iff we own the buffer (pointer-identity vs dst).
+	if (aligned != dstBuffer)
 	{
 		BYTE* pSrc = aligned;
 		for (int y = 0; y < dstSize.height; y++)
@@ -678,21 +679,32 @@ inline void VMX_CopyFromAlignedStrideBufferAndFree(BYTE* aligned, int alignedStr
 		free(aligned);
 	}
 }
-inline void VMX_FreeAlignedStrideBuffer(BYTE* aligned, int alignedStride, int srcStride)
+inline void VMX_FreeAlignedStrideBuffer(BYTE* aligned, int alignedStride, const BYTE* original)
 {
-	if (alignedStride != srcStride)
-	{
+	// free iff we OWN it (Create malloc'd -> aligned != original).
+	if (aligned != original)
 		free(aligned);
-	}
 }
 inline void VMX_CopyToAlignedStrideBuffer(BYTE* aligned, int alignedStride, BYTE* srcBuffer, int srcStride, VMX_SIZE srcSize, int bytesPerPixel)
 {
-	if (alignedStride != srcStride)
+	// copy iff WE OWN the buffer (Create malloc'd it), detected by
+	// pointer-identity against the original — NOT by stride inequality, which is
+	// inconsistent with Create's allocation predicate (w % alignment).
+	if (aligned != srcBuffer)
 	{
 		BYTE* pDst = aligned;
+		const int rowBytes = srcSize.width * bytesPerPixel;
 		for (int y = 0; y < srcSize.height; y++)
 		{
-			memcpy(pDst, srcBuffer, srcSize.width * bytesPerPixel);
+			memcpy(pDst, srcBuffer, rowBytes);
+			// initialise the row tail the SIMD block loader will
+			// read past the valid pixels. Create allocated the row at alignedStride
+			// (>= rowBytes) but malloc leaves that tail uninitialised, so the 32/64B
+			// vector loads would consume indeterminate bytes (MSan/valgrind error +
+			// non-deterministic tail-block encode). Zero it. Shared inline => applies
+			// to both the x86 and the ARM NEON path.
+			if (alignedStride > rowBytes)
+				memset(pDst + rowBytes, 0, (size_t)(alignedStride - rowBytes));
 			srcBuffer += srcStride;
 			pDst += alignedStride;
 		}
