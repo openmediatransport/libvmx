@@ -486,7 +486,9 @@ VMX_API VMX_INSTANCE* VMX_Create(VMX_SIZE dimensions, VMX_PROFILE profile, VMX_C
 
 #define CHECKBUFF_SAVE(checkNumBytes) \
 { \
-	if ((b + checkNumBytes) > maxB) return 0; \
+	/* subtraction-based remaining-bytes check — the old \
+	   `(b + n) > maxB` formed an out-of-range pointer (UB). maxB >= b always. */ \
+	if ((size_t)(maxB - b) < (size_t)(checkNumBytes)) return 0; \
 } 
 
 inline void VMX_ConfigureInterlaced(VMX_INSTANCE* instance, int interlaced) {
@@ -1220,9 +1222,13 @@ VMX_API void VMX_SetThreads(VMX_INSTANCE* instance, int numThreads)
 }
 VMX_API int VMX_SaveTo(VMX_INSTANCE* instance, BYTE* dst, int maxLen)
 {
-	if (!instance) return VMX_ERR_INVALID_INSTANCE;
-	if (!dst) return VMX_ERR_INVALID_PARAMETERS;
-	if (!maxLen) return VMX_ERR_INVALID_PARAMETERS;
+	// the contract is "0 = failure, >0 = bytes written". The old
+	// code returned positive VMX_ERR_* enum values here, which callers (and the
+	// encodeFrame caller guard `0 < len <= cap`) could mistake for a tiny valid
+	// frame. Return 0 for every failure. Also reject negative maxLen (was !maxLen).
+	if (!instance) return 0;
+	if (!dst) return 0;
+	if (maxLen <= 0) return 0;
 
 	BYTE* b = dst;
 	BYTE* maxB = dst + maxLen;
