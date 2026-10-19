@@ -43,21 +43,21 @@
 //===========================
 //IDCT Tables for 128bit SIMD
 //===========================
-__declspec(align(16)) const short one_corr_128[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-__declspec(align(16)) const short round_inv_row_128[8] = { IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0 };
-__declspec(align(16)) const short round_inv_col_128[8] = { IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL };
-__declspec(align(16)) const short round_inv_corr_128[8] = { IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR };
+alignas(16) const short one_corr_128[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+alignas(16) const short round_inv_row_128[8] = { IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0, IRND_INV_ROW, 0 };
+alignas(16) const short round_inv_col_128[8] = { IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL, IRND_INV_COL };
+alignas(16) const short round_inv_corr_128[8] = { IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR, IRND_INV_CORR };
 
-__declspec(align(16)) const short round_inv_row_128_10[8] = { IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0 };
-__declspec(align(16)) const short round_inv_col_128_10[8] = { IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10 };
-__declspec(align(16)) const short round_inv_corr_128_10[8] = { IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10 };
+alignas(16) const short round_inv_row_128_10[8] = { IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0, IRND_INV_ROW10, 0 };
+alignas(16) const short round_inv_col_128_10[8] = { IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10, IRND_INV_COL10 };
+alignas(16) const short round_inv_corr_128_10[8] = { IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10, IRND_INV_CORR10 };
 
-__declspec(align(16)) const short tg_1_16_128[8] = { 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036 }; // tg * (2<<16) + 0.5
-__declspec(align(16)) const short tg_2_16_128[8] = { 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146 }; // tg * (2<<16) + 0.5
-__declspec(align(16)) const short tg_3_16_128[8] = { -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746 }; // tg * (2<<16) + 0.5
-__declspec(align(16)) const short cos_4_16_128[8] = { -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195 };// cos * (2<<16) + 0.5
+alignas(16) const short tg_1_16_128[8] = { 13036, 13036, 13036, 13036, 13036, 13036, 13036, 13036 }; // tg * (2<<16) + 0.5
+alignas(16) const short tg_2_16_128[8] = { 27146, 27146, 27146, 27146, 27146, 27146, 27146, 27146 }; // tg * (2<<16) + 0.5
+alignas(16) const short tg_3_16_128[8] = { -21746, -21746, -21746, -21746, -21746, -21746, -21746, -21746 }; // tg * (2<<16) + 0.5
+alignas(16) const short cos_4_16_128[8] = { -19195, -19195, -19195, -19195, -19195, -19195, -19195, -19195 };// cos * (2<<16) + 0.5
 
-__declspec(align(16)) const short tab_i_04_128[] = {
+alignas(16) const short tab_i_04_128[] = {
 	16384, 21407, 16384, 8867,
 	16384, -8867, 16384, -21407,
 	16384, 8867, -16384, -21407,
@@ -67,7 +67,7 @@ __declspec(align(16)) const short tab_i_04_128[] = {
 	12873, 4520, -22725, -12873,
 	4520, 19266, 19266, -22725 };
 
-__declspec(align(16)) const short tab_i_17_128[] = {
+alignas(16) const short tab_i_17_128[] = {
 	22725, 29692, 22725, 12299,
 	22725, -12299, 22725, -29692,
 	22725, 12299, -22725, -29692,
@@ -77,7 +77,7 @@ __declspec(align(16)) const short tab_i_17_128[] = {
 	17855, 6270, -31521, -17855,
 	6270, 26722, 26722, -31521 };
 
-__declspec(align(16)) const short tab_i_26_128[] = {
+alignas(16) const short tab_i_26_128[] = {
 	21407, 27969, 21407, 11585,
 	21407, -11585, 21407, -27969,
 	21407, 11585, -21407, -27969,
@@ -87,7 +87,7 @@ __declspec(align(16)) const short tab_i_26_128[] = {
 	16819, 5906, -29692, -16819,
 	5906, 25172, 25172, -29692 };
 
-__declspec(align(16)) const short tab_i_35_128[] = {
+alignas(16) const short tab_i_35_128[] = {
 	19266, 25172, 19266, 10426,
 	19266, -10426, 19266, -25172,
 	19266, 10426, -19266, -25172,
@@ -101,28 +101,28 @@ __declspec(align(16)) const short tab_i_35_128[] = {
 //FDCT Tables for 128bit SIMD
 //===========================
 
-__declspec(align(16)) const unsigned short ftab1_128[] = {
+alignas(16) const unsigned short ftab1_128[] = {
 	16384, 16384, 22725, 19266, 56669, 44129, 42811, 52663,
 	16384, 16384, 12873, 4520, 21407, 8867, 19266, 61016,
 	16384, 49152, 12873, 42811, 21407, 56669, 19266, 42811,
 	49152, 16384, 4520, 19266, 8867, 44129, 4520, 52663
 };
 
-__declspec(align(16)) const unsigned short ftab2_128[] = {
+alignas(16) const unsigned short ftab2_128[] = {
 	22725, 22725, 31521, 26722, 53237, 35844, 34015, 47681,
 	22725, 22725, 17855, 6270, 29692, 12299, 26722, 59266,
 	22725, 42811, 17855, 34015, 29692, 53237, 26722, 34015,
 	42811, 22725, 6270, 26722, 12299, 35844, 6270, 47681
 };
 
-__declspec(align(16)) const unsigned short ftab3_128[] = {
+alignas(16) const unsigned short ftab3_128[] = {
 	21407, 21407, 29692, 25172, 53951, 37567, 35844, 48717,
 	21407, 21407, 16819, 5906, 27969, 11585, 25172, 59630,
 	21407, 44129, 16819, 35844, 27969, 53951, 25172, 35844,
 	44129, 21407, 5906, 25172, 11585, 37567, 5906, 48717
 };
 
-__declspec(align(16)) const unsigned short ftab4_128[] = {
+alignas(16) const unsigned short ftab4_128[] = {
 	19266, 19266, 26722, 22654, 55110, 40364, 38814, 50399,
 	19266, 19266, 15137, 5315, 25172, 10426, 22654, 60221,
 	19266, 46270, 15137, 38814, 25172, 55110, 22654, 38814,
