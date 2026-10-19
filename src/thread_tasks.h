@@ -42,34 +42,27 @@ struct ThreadTask
 	void Join()
 	{
 		std::unique_lock<std::mutex> lock(mtx);
-		if (queue.size() > 0)
-		{
-			complete.wait(lock);
-		}
+		// predicate-guarded wait — the old bare complete.wait()
+		// returned on a spurious wake, before queued work actually ran. Because
+		// tasks execute while holding mtx (below), the worker only reaches
+		// cv.wait (releasing mtx) when the queue is empty AND no task is running,
+		// so queue.empty() is the correct completion condition here.
+		complete.wait(lock, [this]{ return queue.empty(); });
 	}
 
 	void TaskLoop()
 	{
-		while (running)
-		{			
-			std::unique_lock<std::mutex> lock(mtx);
-			if (queue.size() == 0)
-			{
+		std::unique_lock<std::mutex> lock(mtx);
+		for (;;)
+		{
+			// read `running` only under mtx via the predicate.
+			cv.wait(lock, [this]{ return !running || !queue.empty(); });
+			if (!running) { complete.notify_all(); break; }
+			std::function<void()> func = std::move(queue.front());
+			queue.pop();
+			func();  // executed while holding mtx (serialized), as before
+			if (queue.empty())
 				complete.notify_all();
-				cv.wait(lock);
-			}
-			if (!running) break;
-			std::function<void()> func = NULL;
-			if (queue.size() > 0)
-			{
-				func = queue.front();
-				queue.pop();
-			}
-			if (func)
-			{
-				func();
-			}
-
 		}
 	}
 	void Initialize()
@@ -127,6 +120,7 @@ static void DestroyTasks(ThreadTasks* tasks)
 			ThreadTask* task = tasks->tasks[i];
 			delete task;
 		}
+		delete[] tasks->tasks;  // free the ThreadTask*[] array (was leaked)
 		delete tasks;
 	}
 }
