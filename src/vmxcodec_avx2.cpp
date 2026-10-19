@@ -2245,7 +2245,7 @@ void VMX_EncodePlaneInternal256(VMX_INSTANCE* instance, VMX_PLANE * pPlane, VMX_
 
 	short* pos = TempBlock;
 	short* end;
-	uint64_t nz;
+	uint64_t nz = 0; // MSVC Debug runtime checks flag reads on paths where the tzcnt branch never ran; shift-by-0 is a no-op
 
 	GolombZeroCodeLookup zeroLut;
 
@@ -2418,7 +2418,7 @@ void VMX_EncodePlaneInternal256_16(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VM
 
 	short* pos = TempBlock;
 	short* end;
-	uint64_t nz;
+	uint64_t nz = 0; // MSVC Debug runtime checks flag reads on paths where the tzcnt branch never ran; shift-by-0 is a no-op
 
 	GolombZeroCodeLookup zeroLut;
 

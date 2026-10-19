@@ -1261,7 +1261,7 @@ void VMX_EncodePlaneInternal128(VMX_INSTANCE* instance, VMX_PLANE * pPlane, VMX_
 
 	unsigned short* matrix = instance->EncodeMatrix;
 
-	uint64_t nz;
+	uint64_t nz = 0; // MSVC Debug runtime checks flag reads on paths where the tzcnt branch never ran; shift-by-0 is a no-op
 	short* pos = TempBlock;
 	short* end;
 
@@ -1405,7 +1405,7 @@ void VMX_EncodePlaneInternal128_16(VMX_INSTANCE* instance, VMX_PLANE* pPlane, VM
 
 	unsigned short* matrix = instance->EncodeMatrix;
 
-	uint64_t nz;
+	uint64_t nz = 0; // MSVC Debug runtime checks flag reads on paths where the tzcnt branch never ran; shift-by-0 is a no-op
 	short* pos = TempBlock;
 	short* end;
 
