@@ -1220,9 +1220,9 @@ VMX_API void VMX_SetThreads(VMX_INSTANCE* instance, int numThreads)
 }
 VMX_API int VMX_SaveTo(VMX_INSTANCE* instance, BYTE* dst, int maxLen)
 {
-	if (!instance) return VMX_ERR_INVALID_INSTANCE;
-	if (!dst) return VMX_ERR_INVALID_PARAMETERS;
-	if (!maxLen) return VMX_ERR_INVALID_PARAMETERS;
+	if (!instance) return 0;
+	if (!dst) return 0;
+	if (!maxLen) return 0;
 
 	BYTE* b = dst;
 	BYTE* maxB = dst + maxLen;
